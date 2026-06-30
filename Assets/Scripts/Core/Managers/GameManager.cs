@@ -35,7 +35,7 @@ public class GameManager : MonoSingleton<GameManager>
 
     public ObjectPoolManager ObjectPool { get; private set; }
     public GameUIManager UIManager { get; private set; }
-    public BubbleGrid BubbleGrid { get; private set; }
+    // TODO: 게임별 매니저 추가
 
     #endregion
 
@@ -88,7 +88,6 @@ public class GameManager : MonoSingleton<GameManager>
         AddGameStateExitAction(GameState.GameStop, () => SoundManager.Instance.ResumeBgm());
         AddGameStateExitAction(GameState.GameStop, () => SoundManager.Instance.ResumeSfx());
         AddGameStateEnterAction(GameState.GameOver, () => SoundManager.Instance.StopBgm());
-        // AddGameStateEnterAction(GameState.GamePlay, () => { if (!SoundManager.Instance.bgmAudioSource.isPlaying) SoundManager.Instance.PlayBgm(BgmClipId.IngameBGM); });
 
         // TODO: GameOver 시 점수 저장 등 게임 특화 로직 추가
         // AddGameStateEnterAction(GameState.GameOver, () => GameDataManager.Instance.PlayerAccountData.TryUpdateBestScore(score));
@@ -104,7 +103,7 @@ public class GameManager : MonoSingleton<GameManager>
         List<GameObject> managerObjects = GameObject.FindGameObjectsWithTag("Manager").ToList();
 
         UIManager = RegisterManager<GameUIManager>(managerObjects);
-        BubbleGrid = RegisterManager<BubbleGrid>(managerObjects);
+        // TODO: 게임별 매니저 등록 추가
 
         foreach (var manager in managers)
         {
