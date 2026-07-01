@@ -6,10 +6,7 @@ public class ShooterInputHandler : MonoBehaviour
 {
     public event Action<Vector2> OnDirectionChanged;
 
-    private const float SwipeThreshold = 10f;
-
-    private Vector2 touchStartPos;
-    private bool isSwiping;
+    [SerializeField] private Transform shootOrigin;
 
     private void Update()
     {
@@ -22,45 +19,28 @@ public class ShooterInputHandler : MonoBehaviour
     private void HandleTouch()
     {
         var touch = Touchscreen.current.primaryTouch;
-        if (touch.press.wasPressedThisFrame)
-        {
-            touchStartPos = touch.position.ReadValue();
-            isSwiping = true;
-        }
-        if (isSwiping && touch.press.isPressed)
-        {
-            Vector2 delta = touch.position.ReadValue() - touchStartPos;
-            if (delta.magnitude > SwipeThreshold)
-                FireDirection(delta);
-        }
-        if (touch.press.wasReleasedThisFrame)
-            isSwiping = false;
+        if (touch.press.isPressed)
+            UpdateDirection(touch.position.ReadValue());
     }
 
     private void HandleMouse()
     {
         if (Mouse.current == null) return;
 
-        if (Mouse.current.leftButton.wasPressedThisFrame)
-        {
-            touchStartPos = Mouse.current.position.ReadValue();
-            isSwiping = true;
-        }
-        if (isSwiping && Mouse.current.leftButton.isPressed)
-        {
-            Vector2 delta = Mouse.current.position.ReadValue() - touchStartPos;
-            if (delta.magnitude > SwipeThreshold)
-                FireDirection(delta);
-        }
-        if (Mouse.current.leftButton.wasReleasedThisFrame)
-            isSwiping = false;
+        if (Mouse.current.leftButton.isPressed)
+            UpdateDirection(Mouse.current.position.ReadValue());
     }
 
-    private void FireDirection(Vector2 delta)
+    private void UpdateDirection(Vector2 screenPos)
     {
-        Vector2 dir = delta.normalized;
+        Camera cam = Camera.main;
+        float camZ = Mathf.Abs(cam.transform.position.z);
+        Vector3 worldPos = cam.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, camZ));
+
+        Vector2 dir = ((Vector2)worldPos - (Vector2)shootOrigin.position).normalized;
         if (dir.y < 0.1f)
             dir = new Vector2(dir.x, 0.1f).normalized;
+
         OnDirectionChanged?.Invoke(dir);
     }
 }

@@ -44,6 +44,9 @@ public class GameManager : MonoBehaviour
         InitializeStateActions();
         InitializeCoreManagers();
         SetGameState(GameState.WaitLoading);
+
+        // TEMP: 아웃게임 씬이 아직 없어서 임시로 바로 플레이 진입. 아웃게임 추가되면 제거.
+        SkipTitle = true;
     }
 
     public static bool SkipTitle;

@@ -6,6 +6,9 @@ public class BallManager : InGameManager
     public float RightWall { get; private set; }
     public float TopWall { get; private set; }
 
+    public GameManager.GameState CurrentGameState => GameManager.CurrentState;
+    public ObjectPoolManager ObjectPool => GameManager.ObjectPool;
+
     public override void Initialize()
     {
         base.Initialize();
