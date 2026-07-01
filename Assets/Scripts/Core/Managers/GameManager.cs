@@ -33,6 +33,7 @@ public class GameManager : MonoBehaviour
 
     public ObjectPoolManager ObjectPool { get; private set; }
     public GameUIManager UIManager { get; private set; }
+    public BallManager BallManager { get; private set; }
     // TODO: 게임별 매니저 추가
 
     #endregion
@@ -99,6 +100,7 @@ public class GameManager : MonoBehaviour
         List<GameObject> managerObjects = GameObject.FindGameObjectsWithTag("Manager").ToList();
 
         UIManager = RegisterManager<GameUIManager>(managerObjects);
+        BallManager = RegisterManager<BallManager>(managerObjects);
         // TODO: 게임별 매니저 등록 추가
 
         foreach (var manager in managers)
