@@ -91,6 +91,7 @@ public class MonsterManager : InGameManager
 
     private void ClearAllMonsters()
     {
+        StopAllCoroutines(); // 진행 중인 스폰 코루틴 중지 — 정리 후 유령 스폰 방지
         foreach (Monster monster in field.ActiveMonsters)
         {
             monster.OnDied -= HandleMonsterDied;
