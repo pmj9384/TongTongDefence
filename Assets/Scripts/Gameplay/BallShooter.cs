@@ -1,54 +1,49 @@
 using UnityEngine;
 using UnityEngine.Pool;
 
-public class BallShooter : MonoBehaviour
+public class BallShooter
 {
-    [SerializeField] private GameObject ballPrefab;
-    [SerializeField] private Transform shootOrigin;
-    [SerializeField] private float shootCooldown = 1f;
-    [SerializeField] private float ballSpeed = 12f;
+    private readonly BallManager ballManager;
+    private readonly Transform origin;
+    private readonly float shootCooldown;
+    private readonly float ballSpeed;
+    private readonly ObjectPool<GameObject> ballPool;
 
-    private BallManager ballManager;
-    private ShooterInputHandler inputHandler;
-    private ObjectPool<GameObject> ballPool;
-
-    private Vector2 shootDirection = Vector2.up;
     private float cooldownTimer;
 
-    private void Awake()
+    public BallShooter(BallManager ballManager, GameObject ballPrefab, Transform origin, float shootCooldown, float ballSpeed)
     {
-        ballManager = GetComponent<BallManager>();
-        inputHandler = GetComponent<ShooterInputHandler>();
-        inputHandler.OnDirectionChanged += dir => shootDirection = dir;
-    }
+        this.ballManager = ballManager;
+        this.origin = origin;
+        this.shootCooldown = shootCooldown;
+        this.ballSpeed = ballSpeed;
 
-    private void Start()
-    {
         ballPool = ballManager.ObjectPool.CreateObjectPool(
             ballPrefab,
-            createFunc: () => Instantiate(ballPrefab),
+            createFunc: () => Object.Instantiate(ballPrefab),
             onGet: ball => ball.SetActive(true),
             onRelease: ball => ball.SetActive(false));
     }
 
-    private void Update()
+    public void Tick(float deltaTime, Vector2 direction)
     {
         if (ballManager.CurrentGameState != GameManager.GameState.GamePlay) return;
 
-        cooldownTimer -= Time.deltaTime;
+        cooldownTimer -= deltaTime;
         if (cooldownTimer <= 0f)
         {
-            Shoot();
+            Shoot(direction);
             cooldownTimer = shootCooldown;
         }
     }
 
-    private void Shoot()
+    private void Shoot(Vector2 direction)
     {
         GameObject ballObj = ballPool.Get();
-        ballObj.transform.position = shootOrigin.position;
+        ballObj.transform.position = origin.position;
 
         Ball ball = ballObj.GetComponent<Ball>();
-        ball.Launch(shootDirection, ballSpeed, ballManager.LeftWall, ballManager.RightWall, ballManager.TopWall);
+        FieldManager field = ballManager.Field;
+        ball.Launch(direction, ballSpeed, field.LeftWall, field.RightWall, field.TopWall);
     }
 }

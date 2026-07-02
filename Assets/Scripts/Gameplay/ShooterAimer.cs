@@ -1,52 +1,54 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(LineRenderer))]
-public class ShooterAimer : MonoBehaviour
+public class ShooterAimer
 {
-    [SerializeField] private Transform shootOrigin;
-    [SerializeField] private int maxBounces = 2;
-    [SerializeField] private float maxDistance = 30f;
+    private readonly BallManager ballManager;
+    private readonly LineRenderer lineRenderer;
+    private readonly Transform origin;
+    private readonly int maxBounces;
+    private readonly float maxDistance;
+    // 매 프레임 새 리스트 할당을 피하기 위해 재사용
+    private readonly List<Vector3> points = new();
 
-    private BallManager ballManager;
-    private ShooterInputHandler inputHandler;
-    private LineRenderer lineRenderer;
-    private Vector2 currentDirection = Vector2.up;
-
-    private void Awake()
+    public ShooterAimer(BallManager ballManager, LineRenderer lineRenderer, Transform origin, int maxBounces, float maxDistance)
     {
-        ballManager = GetComponent<BallManager>();
-        inputHandler = GetComponent<ShooterInputHandler>();
-        inputHandler.OnDirectionChanged += dir => currentDirection = dir;
+        this.ballManager = ballManager;
+        this.lineRenderer = lineRenderer;
+        this.origin = origin;
+        this.maxBounces = maxBounces;
+        this.maxDistance = maxDistance;
 
-        lineRenderer = GetComponent<LineRenderer>();
         lineRenderer.startWidth = 0.05f;
         lineRenderer.endWidth = 0.05f;
         lineRenderer.positionCount = 0;
     }
 
-    private void Update()
+    public void Tick(Vector2 direction)
     {
         if (ballManager.CurrentGameState != GameManager.GameState.GamePlay) return;
 
-        var points = CalculateTrajectory(shootOrigin.position, currentDirection);
-        lineRenderer.positionCount = points.Length;
-        for (int i = 0; i < points.Length; i++)
+        CalculateTrajectory(origin.position, direction);
+        lineRenderer.positionCount = points.Count;
+        for (int i = 0; i < points.Count; i++)
             lineRenderer.SetPosition(i, points[i]);
     }
 
-    private Vector3[] CalculateTrajectory(Vector2 origin, Vector2 dir)
+    private void CalculateTrajectory(Vector2 startPos, Vector2 dir)
     {
-        var points = new List<Vector3> { origin };
-        Vector2 pos = origin;
+        points.Clear();
+        points.Add(startPos);
+
+        FieldManager field = ballManager.Field;
+        Vector2 pos = startPos;
         Vector2 vel = dir.normalized;
         float remaining = maxDistance;
 
         for (int bounce = 0; bounce < maxBounces && remaining > 0; bounce++)
         {
-            float distToLeft = vel.x < 0 ? (ballManager.LeftWall - pos.x) / vel.x : float.MaxValue;
-            float distToRight = vel.x > 0 ? (ballManager.RightWall - pos.x) / vel.x : float.MaxValue;
-            float distToTop = vel.y > 0 ? (ballManager.TopWall - pos.y) / vel.y : float.MaxValue;
+            float distToLeft = vel.x < 0 ? (field.LeftWall - pos.x) / vel.x : float.MaxValue;
+            float distToRight = vel.x > 0 ? (field.RightWall - pos.x) / vel.x : float.MaxValue;
+            float distToTop = vel.y > 0 ? (field.TopWall - pos.y) / vel.y : float.MaxValue;
 
             var hit = Physics2D.Raycast(pos, vel, remaining, LayerMask.GetMask("Monster"));
             float distToMonster = hit.collider != null ? hit.distance : float.MaxValue;
@@ -60,7 +62,5 @@ public class ShooterAimer : MonoBehaviour
             if (minDist == distToLeft || minDist == distToRight) vel.x = -vel.x;
             if (minDist == distToTop) vel.y = -vel.y;
         }
-
-        return points.ToArray();
     }
 }

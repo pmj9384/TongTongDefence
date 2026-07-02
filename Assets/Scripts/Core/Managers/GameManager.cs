@@ -32,6 +32,7 @@ public class GameManager : MonoBehaviour
     private List<IManager> managers = new List<IManager>();
 
     public ObjectPoolManager ObjectPool { get; private set; }
+    public FieldManager FieldManager { get; private set; }
     public GameUIManager UIManager { get; private set; }
     public BallManager BallManager { get; private set; }
     public MonsterManager MonsterManager { get; private set; }
@@ -103,6 +104,8 @@ public class GameManager : MonoBehaviour
         // 2. 씬에서 "Manager" 태그로 MonoBehaviour 매니저 자동 등록
         List<GameObject> managerObjects = GameObject.FindGameObjectsWithTag("Manager").ToList();
 
+        // FieldManager를 먼저 등록 — 다른 매니저의 Initialize()가 경계값을 읽을 수 있음
+        FieldManager = RegisterManager<FieldManager>(managerObjects);
         UIManager = RegisterManager<GameUIManager>(managerObjects);
         BallManager = RegisterManager<BallManager>(managerObjects);
         MonsterManager = RegisterManager<MonsterManager>(managerObjects);

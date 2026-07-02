@@ -2,13 +2,18 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class ShooterInputHandler : MonoBehaviour
+public class ShooterInputHandler
 {
     public event Action<Vector2> OnDirectionChanged;
 
-    [SerializeField] private Transform shootOrigin;
+    private readonly Transform origin;
 
-    private void Update()
+    public ShooterInputHandler(Transform origin)
+    {
+        this.origin = origin;
+    }
+
+    public void Tick()
     {
         if (Touchscreen.current != null)
             HandleTouch();
@@ -37,7 +42,7 @@ public class ShooterInputHandler : MonoBehaviour
         float camZ = Mathf.Abs(cam.transform.position.z);
         Vector3 worldPos = cam.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, camZ));
 
-        Vector2 dir = ((Vector2)worldPos - (Vector2)shootOrigin.position).normalized;
+        Vector2 dir = ((Vector2)worldPos - (Vector2)origin.position).normalized;
         if (dir.y < 0.1f)
             dir = new Vector2(dir.x, 0.1f).normalized;
 
