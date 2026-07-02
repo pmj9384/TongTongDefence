@@ -43,7 +43,6 @@ public class BallShooter
         ballObj.transform.position = origin.position;
 
         Ball ball = ballObj.GetComponent<Ball>();
-        FieldManager field = ballManager.Field;
-        ball.Launch(direction, ballSpeed, field.LeftWall, field.RightWall, field.TopWall);
+        ball.Launch(direction, ballSpeed);
     }
 }

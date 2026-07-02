@@ -11,53 +11,27 @@ public class Ball : MonoBehaviour
     public int WallBounceCount { get; private set; }
 
     private Rigidbody2D rb;
-    private float leftWall;
-    private float rightWall;
-    private float topWall;
+    private float launchSpeed;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
     }
 
-    public void Launch(Vector2 direction, float speed, float leftWall, float rightWall, float topWall)
+    public void Launch(Vector2 direction, float speed)
     {
         rb.gravityScale = 0f;
         rb.linearVelocity = direction.normalized * speed;
-
-        this.leftWall = leftWall;
-        this.rightWall = rightWall;
-        this.topWall = topWall;
+        launchSpeed = speed;
         WallBounceCount = 0;
     }
 
-    private void FixedUpdate()
+    private void OnCollisionEnter2D(Collision2D collision)
     {
-        float x = rb.position.x;
-        float y = rb.position.y;
-
-        if (x <= leftWall)
-        {
-            rb.position = new Vector2(leftWall, rb.position.y);
-            rb.linearVelocity = new Vector2(Mathf.Abs(rb.linearVelocity.x), rb.linearVelocity.y);
-            WallBounceCount++;
-            OnHitWall?.Invoke(this);
-        }
-        else if (x >= rightWall)
-        {
-            rb.position = new Vector2(rightWall, rb.position.y);
-            rb.linearVelocity = new Vector2(-Mathf.Abs(rb.linearVelocity.x), rb.linearVelocity.y);
-            WallBounceCount++;
-            OnHitWall?.Invoke(this);
-        }
-
-        if (y >= topWall)
-        {
-            rb.position = new Vector2(rb.position.x, topWall);
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, -Mathf.Abs(rb.linearVelocity.y));
-            WallBounceCount++;
-            OnHitWall?.Invoke(this);
-        }
+        WallBounceCount++;
+        // 물리 반사 후 부동소수점 오차로 속도가 드리프트되는 것을 발사 속력으로 재정규화해 보정
+        rb.linearVelocity = rb.linearVelocity.normalized * launchSpeed;
+        OnHitWall?.Invoke(this);
     }
 
     private void OnTriggerEnter2D(Collider2D other)

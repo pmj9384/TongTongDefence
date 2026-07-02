@@ -8,7 +8,9 @@ public class ShooterAimer
     private readonly Transform origin;
     private readonly int maxBounces;
     private readonly float maxDistance;
-    // 매 프레임 새 리스트 할당을 피하기 위해 재사용
+    private readonly int aimMask;
+    private readonly int monsterLayer;
+    // Update마다 새 리스트 할당을 피하기 위해 재사용
     private readonly List<Vector3> points = new();
 
     public ShooterAimer(BallManager ballManager, LineRenderer lineRenderer, Transform origin, int maxBounces, float maxDistance)
@@ -18,6 +20,8 @@ public class ShooterAimer
         this.origin = origin;
         this.maxBounces = maxBounces;
         this.maxDistance = maxDistance;
+        aimMask = LayerMask.GetMask("Wall", "Monster");
+        monsterLayer = LayerMask.NameToLayer("Monster");
 
         lineRenderer.startWidth = 0.05f;
         lineRenderer.endWidth = 0.05f;
@@ -39,28 +43,27 @@ public class ShooterAimer
         points.Clear();
         points.Add(startPos);
 
-        FieldManager field = ballManager.Field;
         Vector2 pos = startPos;
         Vector2 vel = dir.normalized;
         float remaining = maxDistance;
 
         for (int bounce = 0; bounce < maxBounces && remaining > 0; bounce++)
         {
-            float distToLeft = vel.x < 0 ? (field.LeftWall - pos.x) / vel.x : float.MaxValue;
-            float distToRight = vel.x > 0 ? (field.RightWall - pos.x) / vel.x : float.MaxValue;
-            float distToTop = vel.y > 0 ? (field.TopWall - pos.y) / vel.y : float.MaxValue;
+            var hit = Physics2D.Raycast(pos, vel, remaining, aimMask);
+            if (hit.collider == null)
+            {
+                points.Add(pos + vel * remaining);
+                break;
+            }
 
-            var hit = Physics2D.Raycast(pos, vel, remaining, LayerMask.GetMask("Monster"));
-            float distToMonster = hit.collider != null ? hit.distance : float.MaxValue;
+            points.Add(hit.point);
+            remaining -= hit.distance;
 
-            float minDist = Mathf.Min(distToLeft, distToRight, distToTop, distToMonster, remaining);
-            pos += vel * minDist;
-            points.Add(pos);
-            remaining -= minDist;
+            if (hit.collider.gameObject.layer == monsterLayer)
+                break;
 
-            if (minDist == distToMonster) break;
-            if (minDist == distToLeft || minDist == distToRight) vel.x = -vel.x;
-            if (minDist == distToTop) vel.y = -vel.y;
+            pos = hit.point;
+            vel = Vector2.Reflect(vel, hit.normal);
         }
     }
 }
