@@ -2,53 +2,26 @@ using System.Collections.Generic;
 
 public class MonsterField
 {
-    private readonly int rows;
-    private readonly int cols;
-    private readonly Monster[,] grid;
-    private readonly Dictionary<Monster, (int row, int col)> positions = new();
+    private readonly int laneCount;
+    private readonly List<Monster> activeMonsters = new();
+    private int nextLane;
 
-    public bool IsEmpty { get; private set; } = true;
+    public bool IsEmpty => activeMonsters.Count == 0;
+    public IReadOnlyList<Monster> ActiveMonsters => activeMonsters;
 
-    public MonsterField(int rows, int cols)
+    public MonsterField(int laneCount)
     {
-        this.rows = rows;
-        this.cols = cols;
-        grid = new Monster[rows, cols];
+        this.laneCount = laneCount;
     }
 
-    public (int row, int col) GetNextEmptySlot()
+    public int GetNextLane()
     {
-        for (int r = 0; r < rows; r++)
-            for (int c = 0; c < cols; c++)
-                if (grid[r, c] == null)
-                    return (r, c);
-        return (-1, -1);
+        int lane = nextLane;
+        nextLane = (nextLane + 1) % laneCount;
+        return lane;
     }
 
-    public void Add(Monster monster, int row, int col)
-    {
-        grid[row, col] = monster;
-        positions[monster] = (row, col);
-        IsEmpty = false;
-    }
-
-    public void Remove(Monster monster)
-    {
-        var (row, col) = positions[monster];
-        grid[row, col] = null;
-        positions.Remove(monster);
-        IsEmpty = CheckEmpty();
-    }
-
-    private bool CheckEmpty()
-    {
-        foreach (var m in grid)
-            if (m != null) return false;
-        return true;
-    }
-
-    public void AdvanceRow()
-    {
-        // TODO: 모든 몬스터 row-1, 0행 도달 시 실패 조건 — 실제 실패 판정은 MonsterManager/GameManager 몫
-    }
+    public void Add(Monster monster) => activeMonsters.Add(monster);
+    public void Remove(Monster monster) => activeMonsters.Remove(monster);
+    public void Clear() => activeMonsters.Clear();
 }
