@@ -7,6 +7,7 @@ public class Ball : MonoBehaviour
 {
     public event Action<Ball> OnHitWall;
     public event Action<Ball, Collider2D> OnHitMonster;
+    public event Action<Ball> OnExitField;
 
     public int WallBounceCount { get; private set; }
 
@@ -37,6 +38,14 @@ public class Ball : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Monster"))
+        {
             OnHitMonster?.Invoke(this, other);
+            other.GetComponent<Monster>().TakeDamage(8, false);   // TEMP: SkillManager 플랜에서 이벤트 기반으로 교체
+        }
+        else if (other.gameObject.layer == LayerMask.NameToLayer("Wall"))
+        {
+            // Left/Right/Top은 non-trigger 물리 벽이라 여기 안 걸림 — 트리거인 BottomWall만 해당
+            OnExitField?.Invoke(this);
+        }
     }
 }

@@ -18,6 +18,7 @@ public class MonsterManager : InGameManager
     private float spawnY;
     private float failY;
     private float laneStartX;
+    private int remainingToSpawn;
 
     public override void Initialize()
     {
@@ -38,6 +39,7 @@ public class MonsterManager : InGameManager
 
     public void Spawn(int monsterCount, int maxHp)
     {
+        remainingToSpawn = monsterCount;
         StartCoroutine(SpawnRoutine(monsterCount, maxHp));
     }
 
@@ -46,6 +48,7 @@ public class MonsterManager : InGameManager
         for (int i = 0; i < monsterCount; i++)
         {
             SpawnOne(maxHp);
+            remainingToSpawn--;
             if (i < monsterCount - 1)
                 yield return new WaitForSeconds(spawnInterval);
         }
@@ -73,7 +76,7 @@ public class MonsterManager : InGameManager
         spawner.Release(monster);
 
         OnMonsterKilled?.Invoke();
-        if (field.IsEmpty)
+        if (field.IsEmpty && remainingToSpawn == 0)
             OnFieldCleared?.Invoke();
     }
 
@@ -92,6 +95,7 @@ public class MonsterManager : InGameManager
     private void ClearAllMonsters()
     {
         StopAllCoroutines(); // 진행 중인 스폰 코루틴 중지 — 정리 후 유령 스폰 방지
+        remainingToSpawn = 0;
         foreach (Monster monster in field.ActiveMonsters)
         {
             monster.OnDied -= HandleMonsterDied;
