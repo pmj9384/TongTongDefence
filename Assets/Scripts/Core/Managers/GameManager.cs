@@ -189,6 +189,9 @@ public class GameManager : MonoBehaviour
     {
         foreach (var manager in managers)
         {
+            // 종료 시 파괴 순서가 비결정적 — 이미 파괴된 매니저는 스킵.
+            // IManager 목록이라 Unity의 == 오버로드가 안 걸리므로 UnityEngine.Object로 캐스팅해 판정
+            if (manager is UnityEngine.Object unityManager && unityManager == null) continue;
             manager.Clear();
         }
     }
