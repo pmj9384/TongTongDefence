@@ -8,11 +8,10 @@ public class FieldManager : InGameManager
     public float BottomWall { get; private set; }
 
     [SerializeField] private SpriteRenderer backgroundSprite;
-    // 화면(뷰포트 0~1)에서 플레이필드가 차지하는 사각형 — 필드 좌표의 SSOT.
-    // 배경이 화면에 1:1 stretch되므로 "그림 속 돌판의 정규화 좌표 = 뷰포트 좌표".
-    // 돌판 픽셀 실측(좌408,상483,우1607,하1630 / 2048) — 아트가 정해주는 값이라 임의 튜닝 불필요.
-    // 격자·몬스터·벽이 그림과 태생적으로 일치 (원본 게임의 '아트=로직 좌표' 방식을 이 에셋에 적용).
-    [SerializeField] private Rect fieldRegionViewport = new Rect(0.1992f, 0.2041f, 0.5854f, 0.5601f);
+    // 그림 속 돌판의 위치 — "텍스처 픽셀" 좌표(하단 원점). 원본 2048² 기준 실측: 좌408, 하418, 폭1199, 높1147.
+    // 그림에 대한 사실이라 불변. 스프라이트 rect(Sprite Editor에서 다듬은 표시 영역)가 바뀌어도
+    // Initialize가 현재 rect 기준으로 자동 환산하므로 필드가 항상 판을 따라간다.
+    [SerializeField] private Rect boardPixelRect = new Rect(408f, 418f, 1199f, 1147f);
 
     public override void Initialize()
     {
@@ -20,8 +19,16 @@ public class FieldManager : InGameManager
         Camera cam = Camera.main;
         float camZ = Mathf.Abs(cam.transform.position.z);
 
-        Vector3 bottomLeft = cam.ViewportToWorldPoint(new Vector3(fieldRegionViewport.xMin, fieldRegionViewport.yMin, camZ));
-        Vector3 topRight = cam.ViewportToWorldPoint(new Vector3(fieldRegionViewport.xMax, fieldRegionViewport.yMax, camZ));
+        // 배경이 화면에 1:1 stretch되므로 "스프라이트 표시영역 내 정규화 좌표 = 뷰포트 좌표".
+        // 판 픽셀 좌표를 현재 스프라이트 rect 기준으로 정규화해 환산 (rect가 잘려 있어도 정확)
+        Rect spriteRect = backgroundSprite.sprite.rect;
+        float xMin = (boardPixelRect.xMin - spriteRect.xMin) / spriteRect.width;
+        float xMax = (boardPixelRect.xMax - spriteRect.xMin) / spriteRect.width;
+        float yMin = (boardPixelRect.yMin - spriteRect.yMin) / spriteRect.height;
+        float yMax = (boardPixelRect.yMax - spriteRect.yMin) / spriteRect.height;
+
+        Vector3 bottomLeft = cam.ViewportToWorldPoint(new Vector3(xMin, yMin, camZ));
+        Vector3 topRight = cam.ViewportToWorldPoint(new Vector3(xMax, yMax, camZ));
         LeftWall = bottomLeft.x;
         RightWall = topRight.x;
         BottomWall = bottomLeft.y;
