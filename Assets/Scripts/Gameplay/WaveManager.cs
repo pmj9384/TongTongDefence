@@ -48,7 +48,7 @@ public class WaveManager : InGameManager
     {
         currentWave = waveIndex;
         killCountThisWave = 0;
-        monsterManager.Spawn(waves[waveIndex].monsterCount, waves[waveIndex].monsterHp);
+        monsterManager.Spawn(waves[waveIndex].monsterCount, waves[waveIndex].monsterHp, waveIndex);
     }
 
     private void HandleMonsterKilled()
