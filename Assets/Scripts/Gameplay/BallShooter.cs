@@ -43,18 +43,15 @@ public class BallShooter
         ballObj.transform.position = origin.position;
 
         Ball ball = ballObj.GetComponent<Ball>();
-        ball.OnHitMonster += HandleBallHitMonster;
         ball.OnExitField += HandleBallExitField;
         ball.Launch(direction, ballSpeed, origin.position);
     }
 
-    private void HandleBallHitMonster(Ball ball, Collider2D other) => ReleaseBall(ball);
-
+    // 볼은 블록에 맞아도 튕기며 계속 날아감(원작) — 회수 경로는 "바닥 반사 → 슈터 귀환" 하나뿐
     private void HandleBallExitField(Ball ball) => ReleaseBall(ball);
 
     private void ReleaseBall(Ball ball)
     {
-        ball.OnHitMonster -= HandleBallHitMonster;
         ball.OnExitField -= HandleBallExitField;
         ballPool.Release(ball.gameObject);
     }

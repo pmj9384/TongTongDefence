@@ -49,23 +49,24 @@ public class Ball : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        WallBounceCount++;
-        // 물리 반사 후 부동소수점 오차로 속도가 드리프트되는 것을 발사 속력으로 재정규화해 보정
+        // 물리 반사 후 부동소수점 드리프트를 발사 속력으로 재정규화 (모든 충돌 공통)
         rb.linearVelocity = rb.linearVelocity.normalized * launchSpeed;
-        OnHitWall?.Invoke(this);
 
-        // 바닥 벽만 노멀이 위(+y)를 향한다 (좌/우 = ±x, 천장 = -y) — 바닥에서 한 번 튕기면 회수 모드.
-        // 회수 모드 전에는 슈터와 겹쳐도 아무 일 없음 (도착 판정은 isReturning일 때만)
-        if (collision.GetContact(0).normal.y > 0.5f)
-            isReturning = true;
-    }
-
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        if (other.CompareTag("Monster"))
+        int layer = collision.gameObject.layer;
+        if (layer == LayerMask.NameToLayer("Wall"))
         {
-            OnHitMonster?.Invoke(this, other);
-            other.GetComponent<Monster>().TakeDamage(8, false);   // TEMP: SkillManager 플랜에서 이벤트 기반으로 교체
+            WallBounceCount++;   // "벽" 카운트는 벽만 — 패시브 '마법 거울' 판정 근거
+            OnHitWall?.Invoke(this);
+            // 바닥 벽(노멀이 위)에 한 번 튕기면 회수 모드. Wall 레이어 가드 필수 —
+            // 블록 윗면에 떨어져도(노멀 위) 회수되면 안 되기 때문
+            if (collision.GetContact(0).normal.y > 0.5f)
+                isReturning = true;
+        }
+        else if (layer == LayerMask.NameToLayer("Monster"))
+        {
+            // 원작: 볼은 블록(몬스터)에 맞으면 데미지를 주고 튕겨나감 — 소멸하지 않음
+            OnHitMonster?.Invoke(this, collision.collider);
+            collision.collider.GetComponent<Monster>().TakeDamage(8, false);   // TEMP: SkillManager에서 교체
         }
     }
 }
