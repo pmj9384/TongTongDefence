@@ -8,40 +8,27 @@ public class MonsterManager : InGameManager
     public event Action OnFieldCleared;
 
     [SerializeField] private GameObject monsterPrefab;
-    [SerializeField] private int laneCount = 9;          // 가로 9열
-    [SerializeField] private float moveSpeed = 0.2f;     // 필드 높이 ~6.3 기준. 씬 값도 함께 갱신할 것
+    [SerializeField] private float moveSpeed = 0.2f;     // 필드 높이 기준 하강 속도
     [SerializeField] private float rowInterval = 0.8f;   // 다음 행이 내려올 때까지 간격(하강에 맞춰 튜닝)
-    [SerializeField] private float rowSpacing = 1f;      // 스폰 시 행 간 Y 간격(0이면 top에 겹쳐 스폰 후 드리프트로 벌어짐)
 
     private MonsterSpawner spawner;
     private MonsterField field;
-    private float laneSpacing;
-    private float spawnY;
+    private FieldManager fieldManager;   // 격자 지오메트리의 주인 — 위치는 전부 CellToWorld로 지목
     private float failY;
-    private float laneStartX;
     private float monsterScale;
     private int remainingRows;
 
     public override void Initialize()
     {
         base.Initialize();
+        fieldManager = GameManager.FieldManager;
         spawner = new MonsterSpawner(GameManager.ObjectPool, monsterPrefab);
-        field = new MonsterField(laneCount);
-        CalculateFieldBounds();
-    }
+        field = new MonsterField(fieldManager.Columns);
 
-    private void CalculateFieldBounds()
-    {
-        FieldManager fm = GameManager.FieldManager;
-        laneSpacing = (fm.RightWall - fm.LeftWall) / laneCount;
-        // 각 레인의 "중심"에 배치: 왼쪽벽 + 반칸 + lane*칸
-        laneStartX = fm.LeftWall + laneSpacing * 0.5f;
-        spawnY = fm.TopWall - laneSpacing * 0.5f;
-        failY = fm.BottomWall + laneSpacing * 0.5f; // 플레이어 라인 근처. 필요 시 Shooter 배치와 맞춰 미세조정
-
-        // 레인폭이 기기 화면비 의존이라 몬스터 스케일은 런타임 계산 (레인의 90% 채움)
+        failY = fieldManager.BottomWall + fieldManager.CellHeight * 0.5f; // 판 바닥 반 칸 위. 필요 시 Shooter 배치와 맞춰 미세조정
+        // 셀 크기가 기기 화면비 의존이라 몬스터 스케일은 런타임 계산 (셀의 90% 채움)
         float monsterBaseWidth = monsterPrefab.GetComponentInChildren<SpriteRenderer>().sprite.bounds.size.x;
-        monsterScale = laneSpacing * 0.9f / monsterBaseWidth;
+        monsterScale = fieldManager.CellWidth * 0.9f / monsterBaseWidth;
     }
 
     // WaveManager가 호출. monsterCount/maxHp는 유지하되 내부에서 행으로 쪼개 스폰.
@@ -52,14 +39,14 @@ public class MonsterManager : InGameManager
 
     private IEnumerator SpawnRoutine(int monsterCount, int maxHp)
     {
-        // monsterCount를 laneCount로 나눠 행 개수 산출. 마지막 행은 남는 수만큼만 채움.
-        int fullRows = monsterCount / laneCount;
-        int remainder = monsterCount % laneCount;
+        // monsterCount를 열 수로 나눠 행 개수 산출. 마지막 행은 남는 수만큼만 채움.
+        int fullRows = monsterCount / fieldManager.Columns;
+        int remainder = monsterCount % fieldManager.Columns;
         remainingRows = fullRows + (remainder > 0 ? 1 : 0);
 
         for (int r = 0; r < fullRows; r++)
         {
-            SpawnRow(laneCount, maxHp);
+            SpawnRow(fieldManager.Columns, maxHp);
             remainingRows--;
             yield return new WaitForSeconds(rowInterval);
         }
@@ -70,13 +57,13 @@ public class MonsterManager : InGameManager
         }
     }
 
-    // countInRow 개의 몬스터를 같은 Y(spawnY)에 서로 다른 레인으로 스폰.
+    // countInRow 개의 몬스터를 0행(스폰줄)의 서로 다른 열에 스폰.
     // 어느 레인을 채울지는 지금은 0..count-1(왼쪽부터). 정확한 대형 모양은 가산점으로 미룸.
     private void SpawnRow(int countInRow, int maxHp)
     {
         for (int lane = 0; lane < countInRow; lane++)
         {
-            Vector3 position = new Vector3(laneStartX + lane * laneSpacing, spawnY, 0f);
+            Vector3 position = fieldManager.CellToWorld(row: 0, col: lane);
             Monster monster = spawner.Spawn(position, maxHp);
             monster.transform.localScale = Vector3.one * monsterScale;
             MonsterMover mover = monster.GetComponent<MonsterMover>();
