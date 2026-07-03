@@ -305,7 +305,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MonsterManager
   monsterPrefab: {fileID: 2798252329521943894, guid: 052a9cfa7b82b4e38a13ed9635fee4e1, type: 3}
   moveSpeed: 0.2
-  rowInterval: 0.8
+  types:
+  - typeName: Fluffy
+    bodySprite: {fileID: -2842281454074129482, guid: 33997d61b91084969aead04b41575ddd, type: 3}
+    blockSprite: {fileID: -7139324324823140894, guid: 282ba0eaa30b345649889a834ec07e74, type: 3}
+    hpMultiplier: 1
+  - typeName: Spider
+    bodySprite: {fileID: -3438905571476058607, guid: 4ec7afbca94614cf4b573bac684e0c2e, type: 3}
+    blockSprite: {fileID: -7139324324823140894, guid: 282ba0eaa30b345649889a834ec07e74, type: 3}
+    hpMultiplier: 1
 --- !u!4 &77163905
 Transform:
   m_ObjectHideFlags: 0
