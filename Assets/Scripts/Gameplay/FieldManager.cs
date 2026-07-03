@@ -7,21 +7,25 @@ public class FieldManager : InGameManager
     public float TopWall { get; private set; }
     public float BottomWall { get; private set; }
 
+    [SerializeField] private SpriteRenderer backgroundSprite;
+    // 배경 스프라이트 안에서 "페인팅된 격자 영역"이 차지하는 정규화 사각형 (0~1).
+    // Background_1_Stage.png 픽셀 분석으로 실측(좌408,상483,우1607,하1630 / 2048px 기준).
+    [SerializeField] private Rect gridRegionNormalized = new Rect(0.1992f, 0.2041f, 0.5854f, 0.5601f);
+
     public override void Initialize()
     {
         base.Initialize();
-        Camera cam = Camera.main;
-        float camZ = Mathf.Abs(cam.transform.position.z);
-
-        Vector3 bottomLeft = cam.ScreenToWorldPoint(new Vector3(Screen.safeArea.xMin, Screen.safeArea.yMin, camZ));
-        Vector3 topRight = cam.ScreenToWorldPoint(new Vector3(Screen.safeArea.xMax, Screen.safeArea.yMax, camZ));
-
-        LeftWall = bottomLeft.x;
-        RightWall = topRight.x;
-        BottomWall = bottomLeft.y;
-        TopWall = topRight.y;
-
+        CalculateFieldBounds();
         CreateWallColliders();
+    }
+
+    private void CalculateFieldBounds()
+    {
+        Bounds b = backgroundSprite.bounds; // 월드 공간, 배경 스케일 반영됨
+        LeftWall   = b.min.x + gridRegionNormalized.xMin * b.size.x;
+        RightWall  = b.min.x + gridRegionNormalized.xMax * b.size.x;
+        BottomWall = b.min.y + gridRegionNormalized.yMin * b.size.y;
+        TopWall    = b.min.y + gridRegionNormalized.yMax * b.size.y;
     }
 
     private void CreateWallColliders()
