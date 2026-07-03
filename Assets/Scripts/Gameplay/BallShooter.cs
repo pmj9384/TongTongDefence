@@ -45,7 +45,7 @@ public class BallShooter
         Ball ball = ballObj.GetComponent<Ball>();
         ball.OnHitMonster += HandleBallHitMonster;
         ball.OnExitField += HandleBallExitField;
-        ball.Launch(direction, ballSpeed);
+        ball.Launch(direction, ballSpeed, origin.position);
     }
 
     private void HandleBallHitMonster(Ball ball, Collider2D other) => ReleaseBall(ball);
