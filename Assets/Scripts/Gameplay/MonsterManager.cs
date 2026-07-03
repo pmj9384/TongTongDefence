@@ -9,7 +9,7 @@ public class MonsterManager : InGameManager
 
     [SerializeField] private GameObject monsterPrefab;
     [SerializeField] private int laneCount = 9;          // 가로 9열
-    [SerializeField] private float moveSpeed = 1f;
+    [SerializeField] private float moveSpeed = 0.2f;     // 필드 높이 ~6.3 기준. 씬 값도 함께 갱신할 것
     [SerializeField] private float rowInterval = 0.8f;   // 다음 행이 내려올 때까지 간격(하강에 맞춰 튜닝)
     [SerializeField] private float rowSpacing = 1f;      // 스폰 시 행 간 Y 간격(0이면 top에 겹쳐 스폰 후 드리프트로 벌어짐)
 
@@ -19,6 +19,7 @@ public class MonsterManager : InGameManager
     private float spawnY;
     private float failY;
     private float laneStartX;
+    private float monsterScale;
     private int remainingRows;
 
     public override void Initialize()
@@ -37,6 +38,10 @@ public class MonsterManager : InGameManager
         laneStartX = fm.LeftWall + laneSpacing * 0.5f;
         spawnY = fm.TopWall - laneSpacing * 0.5f;
         failY = fm.BottomWall + laneSpacing * 0.5f; // 플레이어 라인 근처. 필요 시 Shooter 배치와 맞춰 미세조정
+
+        // 레인폭이 기기 화면비 의존이라 몬스터 스케일은 런타임 계산 (레인의 90% 채움)
+        float monsterBaseWidth = monsterPrefab.GetComponentInChildren<SpriteRenderer>().sprite.bounds.size.x;
+        monsterScale = laneSpacing * 0.9f / monsterBaseWidth;
     }
 
     // WaveManager가 호출. monsterCount/maxHp는 유지하되 내부에서 행으로 쪼개 스폰.
@@ -73,6 +78,7 @@ public class MonsterManager : InGameManager
         {
             Vector3 position = new Vector3(laneStartX + lane * laneSpacing, spawnY, 0f);
             Monster monster = spawner.Spawn(position, maxHp);
+            monster.transform.localScale = Vector3.one * monsterScale;
             MonsterMover mover = monster.GetComponent<MonsterMover>();
             mover.Initialize(moveSpeed, failY);
             mover.OnReachedBottom += HandleMonsterReachedBottom;
