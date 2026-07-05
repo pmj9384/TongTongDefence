@@ -1,0 +1,29 @@
+using UnityEngine;
+
+// 플레이어 상태의 주인 — 체력 보유, 소진 시 GameOver 전환. (몬스터 도달 = 즉사가 아니라 체력전 — 원작 관찰)
+public class PlayerManager : InGameManager
+{
+    [SerializeField] private int maxHealth = 300;   // 원작 게이지 관찰값
+
+    public PlayerHealth Health { get; private set; }
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        Health = new PlayerHealth(maxHealth);
+        Health.OnDied += HandleDied;
+    }
+
+    public override void Clear()
+    {
+        base.Clear();
+        Health.OnDied -= HandleDied;
+    }
+
+    public void TakeDamage(int damage) => Health.TakeDamage(damage);
+
+    private void HandleDied()
+    {
+        GameManager.SetGameState(GameManager.GameState.GameOver);
+    }
+}
