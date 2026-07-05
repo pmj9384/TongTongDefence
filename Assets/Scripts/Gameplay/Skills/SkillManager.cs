@@ -7,6 +7,7 @@ using UnityEngine;
 public class SkillManager : InGameManager
 {
     [SerializeField] private SkillSelectionPanel selectionPanel;
+    [SerializeField] private GameObject fragmentPrefab;     // 클러스터 파편볼
 
     public PlayerSkills PlayerSkills => playerSkills;
     public PlayerLevel PlayerLevel => playerLevel;
@@ -20,6 +21,11 @@ public class SkillManager : InGameManager
     private int rotationIndex;
     private readonly HashSet<Monster> critConsumed = new(); // 단검 "적당 1회" 소모 기록
 
+    // 스킬 "행동"은 클래스 단위로 분리(SRP) — 여기는 디스패치만
+    private Dictionary<SkillId, IOnHitEffect> onHitEffects;
+    private LastMatchEffect lastMatch;
+    private UnityEngine.Pool.ObjectPool<GameObject> fragmentPool;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -27,6 +33,22 @@ public class SkillManager : InGameManager
         var csv = Resources.Load<TextAsset>("Tables/SkillTable");
         playerSkills = new PlayerSkills(SkillTableParser.Parse(csv.text));
         playerLevel = new PlayerLevel();
+
+        fragmentPool = GameManager.ObjectPool.CreateObjectPool(
+            fragmentPrefab,
+            createFunc: () => Instantiate(fragmentPrefab),
+            onGet: o => o.SetActive(true),
+            onRelease: o => o.SetActive(false));
+
+        onHitEffects = new Dictionary<SkillId, IOnHitEffect>
+        {
+            { SkillId.FireBall, new FireBallEffect() },
+            { SkillId.IceBall, new IceBallEffect(rng) },
+            { SkillId.LaserBall, new LaserBallEffect(GameManager.MonsterManager) },
+            { SkillId.ClusterBall, new ClusterBallEffect(rng, SpawnFragment) },
+            // GhostBall은 온히트 효과 없음 — 관통은 Ball의 레이어/센서 거동
+        };
+        lastMatch = new LastMatchEffect(GameManager.FieldManager);
 
         GameManager.MonsterManager.OnMonsterKilled += HandleMonsterKilled;
         GameManager.BallManager.OnBallHitMonster += HandleBallHit;
@@ -83,23 +105,27 @@ public class SkillManager : InGameManager
         ApplyOnHitEffect(ball, monster, status);
     }
 
-    // 볼 타입별 온히트 효과 — 수치는 전부 SkillTable(CSV)의 현재 레벨 값
+    // 볼 타입별 온히트 효과 — 행동은 Effects/ 클래스, 수치는 SkillTable(CSV) 현재 레벨 값
     private void ApplyOnHitEffect(Ball ball, Monster monster, MonsterStatusEffects status)
     {
-        if (ball.ActiveSkill == null || status == null) return;
+        if (ball.ActiveSkill == null) return;
+        if (!onHitEffects.TryGetValue(ball.ActiveSkill.Value, out IOnHitEffect effect)) return;
 
-        SkillLevel data = playerSkills.Table[ball.ActiveSkill.Value].GetLevel(ball.SkillLevel);
-        switch (ball.ActiveSkill.Value)
-        {
-            case SkillId.FireBall:   // a=지속, b=최대중첩, c=중첩당 초당피해
-                status.ApplyBurn(data.a, (int)data.b, data.c);
-                break;
-            case SkillId.IceBall:    // a=확률, b=지속, c=감속=받피증
-                if (rng.NextDouble() < data.a)
-                    status.ApplyFreeze(data.b, data.c, data.c);
-                break;
-            // LaserBall/GhostBall/ClusterBall 거동은 Task 6에서 이 지점에 연결
-        }
+        effect.Apply(monster, playerSkills.Table[ball.ActiveSkill.Value].GetLevel(ball.SkillLevel));
+    }
+
+    // 클러스터 파편 스폰/회수 — 풀 소유는 매니저, 효과 클래스는 델리게이트만 사용
+    private void SpawnFragment(Vector2 position, int damage)
+    {
+        FragmentBall fragment = fragmentPool.Get().GetComponent<FragmentBall>();
+        fragment.OnDespawn += HandleFragmentDespawn;
+        fragment.Launch(position, damage, rng);
+    }
+
+    private void HandleFragmentDespawn(FragmentBall fragment)
+    {
+        fragment.OnDespawn -= HandleFragmentDespawn;
+        fragmentPool.Release(fragment.gameObject);
     }
 
     // 보유 패시브의 현재 레벨 a값 (미보유 = 0)
@@ -128,6 +154,11 @@ public class SkillManager : InGameManager
     private void HandleMonsterKilled(Monster monster)
     {
         critConsumed.Remove(monster);   // 풀 재사용 대비 — 죽은 몬스터의 1회 소모 기록 해제
+
+        // 마지막 성냥: 사망 폭발 (연쇄 사망 시 재귀적으로 다시 발동 — 의도된 연쇄)
+        int matchLevel = playerSkills.GetLevel(SkillId.LastMatch);
+        if (matchLevel > 0)
+            lastMatch.Explode(monster.transform.position, playerSkills.Table[SkillId.LastMatch].GetLevel(matchLevel));
 
         pendingDrafts += playerLevel.AddKill();
         // 이미 선택 중이면 큐에만 쌓고, 선택이 끝날 때 이어서 연다

@@ -18,6 +18,8 @@ public class Ball : MonoBehaviour
 
     private const float ReturnArriveRadius = 0.3f;
 
+    [SerializeField] private GameObject ghostSensor;   // 자식 관통 센서 — 고스트볼일 때만 활성
+
     private Rigidbody2D rb;
     private float launchSpeed;
     private Vector2 returnTarget;   // 회수 목적지(슈터 위치) — 발사 시 값만 전달받음 (매니저 모름)
@@ -40,7 +42,17 @@ public class Ball : MonoBehaviour
         ActiveSkill = loadout.skill;
         SkillLevel = loadout.level;
         BaseDamage = loadout.damage;
+
+        // 고스트볼 = 몬스터 통과(GhostBall×Monster 매트릭스 OFF) + 자식 센서로 히트 감지.
+        // 벽/바닥과는 여전히 충돌 → 바닥 회수 경로 동일 (원작 관찰)
+        bool isGhost = loadout.skill == SkillId.GhostBall;
+        gameObject.layer = LayerMask.NameToLayer(isGhost ? "GhostBall" : "Ball");
+        if (ghostSensor != null) ghostSensor.SetActive(isGhost);
     }
+
+    // 관통은 물리 접촉이 없어 노멀이 없음 — 진행 방향의 반대로 근사 (단검 전/후면 판정용)
+    public void NotifyGhostHit(Collider2D monster)
+        => OnHitMonster?.Invoke(this, monster, -rb.linearVelocity.normalized);
 
     private void FixedUpdate()
     {
@@ -58,8 +70,10 @@ public class Ball : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        // 물리 반사 후 부동소수점 드리프트를 발사 속력으로 재정규화 (모든 충돌 공통)
-        rb.linearVelocity = rb.linearVelocity.normalized * launchSpeed;
+        // 물리 반사 후 부동소수점 드리프트를 발사 속력으로 재정규화 (모든 충돌 공통).
+        // 속도가 0으로 죽은 비정상 케이스(동시 접촉 상쇄 등)는 아래로 떨어뜨려 회수 루프로 탈출 (안전망)
+        Vector2 velocity = rb.linearVelocity;
+        rb.linearVelocity = (velocity.sqrMagnitude > 0.01f ? velocity.normalized : Vector2.down) * launchSpeed;
 
         int layer = collision.gameObject.layer;
         if (layer == LayerMask.NameToLayer("Wall"))
