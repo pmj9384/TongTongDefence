@@ -39,3 +39,5 @@ PurpleCow 채용과제. **유저가 모든 코드를 면접에서 설명할 수 
 - 오브젝트 생성은 ObjectPool. FindObjectOfType/GameObject.Find 금지
 - 필드 지오메트리는 FieldManager가 SSOT — 위치는 CellToWorld(행,열)로 지목
 - 커밋 워크플로우: 구현 → 유저 Play 확인 → 즉시 커밋 → 다음 세션 리뷰
+- **브랜치 (git-flow 축약)**: feature/* → **develop** 머지 (Task/기능 단위 분기, 한 브랜치 몰빵 금지).
+  **master는 빌드용** — develop이 빌드 검증(APK)된 시점에만 develop → master 머지

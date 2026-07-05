@@ -19,8 +19,8 @@ TagManager:
   - Ball
   - Wall
   - Monster
-  - 
-  - 
+  - GhostBall
+  - BallSensor
   - 
   - 
   - 

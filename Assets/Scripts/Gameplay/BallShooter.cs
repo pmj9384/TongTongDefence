@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -10,6 +11,8 @@ public class BallShooter
     private readonly ObjectPool<GameObject> ballPool;
 
     private float cooldownTimer;
+    private readonly Dictionary<SkillId, Sprite> spriteCache = new();
+    private Sprite normalSprite;
 
     public BallShooter(BallManager ballManager, GameObject ballPrefab, Transform origin, float shootCooldown, float ballSpeed)
     {
@@ -39,20 +42,52 @@ public class BallShooter
 
     private void Shoot(Vector2 direction)
     {
+        BallLoadout loadout = ballManager.GetNextLoadout();   // 보유 액티브 로테이션 (없으면 노멀)
+
         GameObject ballObj = ballPool.Get();
         ballObj.transform.position = origin.position;
+        ballObj.GetComponent<SpriteRenderer>().sprite = GetSprite(loadout.skill);
 
         Ball ball = ballObj.GetComponent<Ball>();
+        ball.OnHitMonster += HandleBallHitMonster;
         ball.OnExitField += HandleBallExitField;
-        ball.Launch(direction, ballSpeed, origin.position);
+        ball.Launch(direction, ballSpeed, origin.position, loadout);
     }
+
+    // 히트는 BallManager로 중계 → SkillManager가 데미지 계산 (Ball→Shooter→Manager 중계 관례)
+    private void HandleBallHitMonster(Ball ball, Collider2D monster, Vector2 hitNormal)
+        => ballManager.NotifyBallHitMonster(ball, monster, hitNormal);
 
     // 볼은 블록에 맞아도 튕기며 계속 날아감(원작) — 회수 경로는 "바닥 반사 → 슈터 귀환" 하나뿐
     private void HandleBallExitField(Ball ball) => ReleaseBall(ball);
 
     private void ReleaseBall(Ball ball)
     {
+        ball.OnHitMonster -= HandleBallHitMonster;
         ball.OnExitField -= HandleBallExitField;
         ballPool.Release(ball.gameObject);
+    }
+
+    // 타입별 볼 스프라이트 (지급 리소스 파일명 매핑 — Nomal은 원문 오타 그대로)
+    private Sprite GetSprite(SkillId? skill)
+    {
+        if (skill == null)
+            return normalSprite ??= Resources.Load<Sprite>("Sprites/Balls/Ball_Nomal_Ball");
+
+        if (!spriteCache.TryGetValue(skill.Value, out Sprite sprite))
+        {
+            string name = skill.Value switch
+            {
+                SkillId.FireBall => "Ball_Fire_ball",
+                SkillId.IceBall => "Ball_Ice_Ball",
+                SkillId.LaserBall => "Ball_Laser_Ball",
+                SkillId.GhostBall => "Ball_Ghost_Ball",
+                SkillId.ClusterBall => "Ball_Cluster_Ball",
+                _ => "Ball_Nomal_Ball",
+            };
+            sprite = Resources.Load<Sprite>($"Sprites/Balls/{name}");
+            spriteCache[skill.Value] = sprite;
+        }
+        return sprite;
     }
 }

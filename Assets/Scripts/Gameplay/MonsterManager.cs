@@ -1,9 +1,10 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class MonsterManager : InGameManager
 {
-    public event Action OnMonsterKilled;
+    public event Action<Monster> OnMonsterKilled;   // 처치된 몬스터 전달 (레벨 카운트·치명타 1회 소모 해제·성냥 폭발 위치)
     public event Action OnFieldCleared;
 
     [SerializeField] private GameObject monsterPrefab;
@@ -14,6 +15,11 @@ public class MonsterManager : InGameManager
     private MonsterField field;
     private FieldManager fieldManager;   // 격자 지오메트리의 주인 — 위치는 전부 CellToWorld로 지목
     private float failY;
+
+    // 사망 몬스터의 풀 반환 대기 목록 — 물리 콜백 "도중" 콜라이더를 끄면 볼의 반사 계산이
+    // 반쪽으로 끝나 속도가 0이 되는 버그가 있어, 물리적 제거만 프레임 끝(LateUpdate)으로 미룬다.
+    // (논리적 죽음 — 킬 카운트/웨이브 판정 — 은 즉시)
+    private readonly List<Monster> pendingRelease = new();
 
     public override void Initialize()
     {
@@ -47,16 +53,36 @@ public class MonsterManager : InGameManager
         }
     }
 
+    // 레이저볼 "같은 행" 쿼리 — 기준 Y에서 반 칸 이내의 활성 몬스터 (연속 하강이라 행 인덱스보다 Y밴드가 정확)
+    public List<Monster> GetMonstersNearRow(float y)
+    {
+        var result = new List<Monster>();
+        float halfCell = fieldManager.CellHeight * 0.5f;
+        foreach (Monster m in field.ActiveMonsters)
+            if (Mathf.Abs(m.transform.position.y - y) <= halfCell)
+                result.Add(m);
+        return result;
+    }
+
     private void HandleMonsterDied(Monster monster)
     {
         monster.OnDied -= HandleMonsterDied;
         monster.GetComponent<MonsterMover>().OnReachedBottom -= HandleMonsterReachedBottom;
         field.Remove(monster);
-        spawner.Release(monster);
+        pendingRelease.Add(monster);   // 물리적 제거는 LateUpdate에서
 
-        OnMonsterKilled?.Invoke();
+        OnMonsterKilled?.Invoke(monster);
         if (field.IsEmpty)   // 동기 스폰이라 스폰 도중 조기 발화 경합이 없음 (코루틴/가드 삭제됨)
             OnFieldCleared?.Invoke();
+    }
+
+    // 이 프레임의 모든 물리 스텝/충돌 콜백이 끝난 뒤 — 볼 반사가 온전히 완료된 다음 실제로 끈다
+    private void LateUpdate()
+    {
+        if (pendingRelease.Count == 0) return;
+        foreach (Monster monster in pendingRelease)
+            spawner.Release(monster);
+        pendingRelease.Clear();
     }
 
     private void HandleMonsterReachedBottom(MonsterMover mover)

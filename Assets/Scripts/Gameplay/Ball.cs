@@ -6,12 +6,19 @@ using UnityEngine;
 public class Ball : MonoBehaviour
 {
     public event Action<Ball> OnHitWall;
-    public event Action<Ball, Collider2D> OnHitMonster;
+    public event Action<Ball, Collider2D, Vector2> OnHitMonster;   // (볼, 몬스터 콜라이더, 충돌 노멀)
     public event Action<Ball> OnExitField;
 
     public int WallBounceCount { get; private set; }
 
+    // 발사 시 주입되는 타입 파라미터 — Ball은 매니저를 모르고, 데미지 계산은 SkillManager 몫
+    public SkillId? ActiveSkill { get; private set; }
+    public int SkillLevel { get; private set; }
+    public int BaseDamage { get; private set; }
+
     private const float ReturnArriveRadius = 0.3f;
+
+    [SerializeField] private GameObject ghostSensor;   // 자식 관통 센서 — 고스트볼일 때만 활성
 
     private Rigidbody2D rb;
     private float launchSpeed;
@@ -23,7 +30,7 @@ public class Ball : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
     }
 
-    public void Launch(Vector2 direction, float speed, Vector2 returnTarget)
+    public void Launch(Vector2 direction, float speed, Vector2 returnTarget, BallLoadout loadout)
     {
         rb.gravityScale = 0f;
         rb.linearVelocity = direction.normalized * speed;
@@ -31,7 +38,21 @@ public class Ball : MonoBehaviour
         this.returnTarget = returnTarget;
         isReturning = false;
         WallBounceCount = 0;
+
+        ActiveSkill = loadout.skill;
+        SkillLevel = loadout.level;
+        BaseDamage = loadout.damage;
+
+        // 고스트볼 = 몬스터 통과(GhostBall×Monster 매트릭스 OFF) + 자식 센서로 히트 감지.
+        // 벽/바닥과는 여전히 충돌 → 바닥 회수 경로 동일 (원작 관찰)
+        bool isGhost = loadout.skill == SkillId.GhostBall;
+        gameObject.layer = LayerMask.NameToLayer(isGhost ? "GhostBall" : "Ball");
+        if (ghostSensor != null) ghostSensor.SetActive(isGhost);
     }
+
+    // 관통은 물리 접촉이 없어 노멀이 없음 — 진행 방향의 반대로 근사 (단검 전/후면 판정용)
+    public void NotifyGhostHit(Collider2D monster)
+        => OnHitMonster?.Invoke(this, monster, -rb.linearVelocity.normalized);
 
     private void FixedUpdate()
     {
@@ -49,8 +70,10 @@ public class Ball : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        // 물리 반사 후 부동소수점 드리프트를 발사 속력으로 재정규화 (모든 충돌 공통)
-        rb.linearVelocity = rb.linearVelocity.normalized * launchSpeed;
+        // 물리 반사 후 부동소수점 드리프트를 발사 속력으로 재정규화 (모든 충돌 공통).
+        // 속도가 0으로 죽은 비정상 케이스(동시 접촉 상쇄 등)는 아래로 떨어뜨려 회수 루프로 탈출 (안전망)
+        Vector2 velocity = rb.linearVelocity;
+        rb.linearVelocity = (velocity.sqrMagnitude > 0.01f ? velocity.normalized : Vector2.down) * launchSpeed;
 
         int layer = collision.gameObject.layer;
         if (layer == LayerMask.NameToLayer("Wall"))
@@ -64,9 +87,9 @@ public class Ball : MonoBehaviour
         }
         else if (layer == LayerMask.NameToLayer("Monster"))
         {
-            // 원작: 볼은 블록(몬스터)에 맞으면 데미지를 주고 튕겨나감 — 소멸하지 않음
-            OnHitMonster?.Invoke(this, collision.collider);
-            collision.collider.GetComponent<Monster>().TakeDamage(8, false);   // TEMP: SkillManager에서 교체
+            // 원작: 볼은 블록(몬스터)에 맞으면 데미지를 주고 튕겨나감 — 소멸하지 않음.
+            // 데미지 계산·적용은 이벤트를 받은 SkillManager가 담당 (Ball은 사실만 보고)
+            OnHitMonster?.Invoke(this, collision.collider, collision.GetContact(0).normal);
         }
     }
 }
