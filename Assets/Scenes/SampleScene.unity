@@ -1849,6 +1849,7 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerManager
   maxHealth: 300
+  playerTransform: {fileID: 818008312}
 --- !u!114 &818030004
 MonoBehaviour:
   m_ObjectHideFlags: 0
