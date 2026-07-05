@@ -1,0 +1,31 @@
+skillId,kind,level,ballDamage,a,b,c,displayName
+FireBall,ActiveBall,1,21,4,3,8,파이어 볼
+FireBall,ActiveBall,2,24,4.5,4,10,파이어 볼
+FireBall,ActiveBall,3,27,5,5,12,파이어 볼
+IceBall,ActiveBall,1,25,0.3,5,0.1,아이스볼
+IceBall,ActiveBall,2,37,0.35,6,0.15,아이스볼
+IceBall,ActiveBall,3,50,0.4,7,0.2,아이스볼
+LaserBall,ActiveBall,1,11,7,0,0,레이저볼
+LaserBall,ActiveBall,2,15,11,0,0,레이저볼
+LaserBall,ActiveBall,3,19,15,0,0,레이저볼
+GhostBall,ActiveBall,1,14,0,0,0,고스트 볼
+GhostBall,ActiveBall,2,21,0,0,0,고스트 볼
+GhostBall,ActiveBall,3,28,0,0,0,고스트 볼
+ClusterBall,ActiveBall,1,27,0.4,10,0,클러스터 볼
+ClusterBall,ActiveBall,2,30,0.5,15,0,클러스터 볼
+ClusterBall,ActiveBall,3,33,0.6,20,0,클러스터 볼
+TinHeart,Passive,1,0,0.2,0,0,따뜻한 양철 심장
+TinHeart,Passive,2,0,0.3,0,0,따뜻한 양철 심장
+TinHeart,Passive,3,0,0.4,0,0,따뜻한 양철 심장
+MagicMirror,Passive,1,0,0.2,0,0,마법 거울
+MagicMirror,Passive,2,0,0.4,0,0,마법 거울
+MagicMirror,Passive,3,0,0.6,0,0,마법 거울
+AmethystDagger,Passive,1,0,0.1,0,0,자수정 단검
+AmethystDagger,Passive,2,0,0.2,0,0,자수정 단검
+AmethystDagger,Passive,3,0,0.3,0,0,자수정 단검
+EmeraldDagger,Passive,1,0,0.2,0,0,에메랄드 단검
+EmeraldDagger,Passive,2,0,0.3,0,0,에메랄드 단검
+EmeraldDagger,Passive,3,0,0.4,0,0,에메랄드 단검
+LastMatch,Passive,1,0,10,0,0,마지막 성냥
+LastMatch,Passive,2,0,20,0,0,마지막 성냥
+LastMatch,Passive,3,0,30,0,0,마지막 성냥
