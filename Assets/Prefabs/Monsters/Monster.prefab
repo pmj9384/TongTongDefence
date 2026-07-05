@@ -106,6 +106,7 @@ GameObject:
   - component: {fileID: 2233445566778899}
   - component: {fileID: 3344556677889900}
   - component: {fileID: 3355667788990011}
+  - component: {fileID: 3366778899001122}
   m_Layer: 8
   m_Name: Monster
   m_TagString: Monster
@@ -253,6 +254,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f80ec838d8c8e41a89f30a906e99c33a, type: 3}
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::MonsterStatusEffects
+--- !u!114 &3366778899001122
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2798252329521943894}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afd15398593ab43b19e945edebee17ad, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::MonsterHpBar
 --- !u!1 &8521314312971259352
 GameObject:
   m_ObjectHideFlags: 0
