@@ -51,7 +51,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 400
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -116,13 +116,13 @@ TextureImporter:
       name: Background_1_Stage_0
       rect:
         serializedVersion: 2
-        x: 0
+        x: 118
         y: 0
-        width: 2048
-        height: 2048
+        width: 1713
+        height: 2045
       alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 290, y: 840, z: 224, w: 840}
       customData: 
       outline: []
       physicsShape: []
@@ -131,14 +131,14 @@ TextureImporter:
       spriteID: bb0da10fbf3a838f0800000000000000
       internalID: -560517851147218757
       vertices: []
-      indices: 
+      indices:
       edges: []
       weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: a341bf471a0c74e24adb939767990714
     internalID: 0
     vertices: []
     indices: 

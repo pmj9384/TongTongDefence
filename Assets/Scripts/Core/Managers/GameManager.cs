@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityCommunity.UnitySingleton;
-
-public class GameManager : MonoSingleton<GameManager>
+public class GameManager : MonoBehaviour
 {
     public enum GameState
     {
@@ -34,19 +32,24 @@ public class GameManager : MonoSingleton<GameManager>
     private List<IManager> managers = new List<IManager>();
 
     public ObjectPoolManager ObjectPool { get; private set; }
+    public FieldManager FieldManager { get; private set; }
     public GameUIManager UIManager { get; private set; }
+    public BallManager BallManager { get; private set; }
+    public MonsterManager MonsterManager { get; private set; }
+    public WaveManager WaveManager { get; private set; }
     // TODO: 게임별 매니저 추가
 
     #endregion
 
-    protected override void Awake()
+    private void Awake()
     {
-        base.Awake();
-
         SetInitialSettings();
         InitializeStateActions();
         InitializeCoreManagers();
         SetGameState(GameState.WaitLoading);
+
+        // TEMP: 아웃게임 씬이 아직 없어서 임시로 바로 플레이 진입. 아웃게임 추가되면 제거.
+        SkipTitle = true;
     }
 
     public static bool SkipTitle;
@@ -102,7 +105,12 @@ public class GameManager : MonoSingleton<GameManager>
         // 2. 씬에서 "Manager" 태그로 MonoBehaviour 매니저 자동 등록
         List<GameObject> managerObjects = GameObject.FindGameObjectsWithTag("Manager").ToList();
 
+        // FieldManager를 먼저 등록 — 다른 매니저의 Initialize()가 경계값을 읽을 수 있음
+        FieldManager = RegisterManager<FieldManager>(managerObjects);
         UIManager = RegisterManager<GameUIManager>(managerObjects);
+        BallManager = RegisterManager<BallManager>(managerObjects);
+        MonsterManager = RegisterManager<MonsterManager>(managerObjects);
+        WaveManager = RegisterManager<WaveManager>(managerObjects);
         // TODO: 게임별 매니저 등록 추가
 
         foreach (var manager in managers)
@@ -177,10 +185,13 @@ public class GameManager : MonoSingleton<GameManager>
         Time.timeScale = previousStopTimeScale;
     }
 
-    protected virtual void OnDestroy()
+    private void OnDestroy()
     {
         foreach (var manager in managers)
         {
+            // 종료 시 파괴 순서가 비결정적 — 이미 파괴된 매니저는 스킵.
+            // IManager 목록이라 Unity의 == 오버로드가 안 걸리므로 UnityEngine.Object로 캐스팅해 판정
+            if (manager is UnityEngine.Object unityManager && unityManager == null) continue;
             manager.Clear();
         }
     }
