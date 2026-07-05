@@ -1,12 +1,18 @@
 using UnityEngine;
 
+[RequireComponent(typeof(LineRenderer))]
 public class Shooter : MonoBehaviour
 {
+    [Header("References")]
     [SerializeField] private BallManager ballManager;
     [SerializeField] private GameObject ballPrefab;
     [SerializeField] private LineRenderer lineRenderer;
+
+    [Header("Shooting")]
     [SerializeField] private float shootCooldown = 1f;
     [SerializeField] private float ballSpeed = 12f;
+
+    [Header("Aiming")]
     [SerializeField] private int maxBounces = 2;
     [SerializeField] private float maxDistance = 30f;
 

@@ -70,7 +70,7 @@ public class FieldManager : InGameManager
 
     // 볼 반사 바닥을 판 바닥보다 얼마나 아래(뿌리지대) 둘지 — 슈터가 이 사이에 서 있어야
     // "볼이 슈터를 지나 내려가 → 바닥에 튕겨 → 슈터에게 돌아오는" 원작 회수 연출이 나온다
-    [SerializeField] private float bottomWallDrop = 0.5f;
+    [SerializeField] private float bottomWallDrop = 0.8f; // 슈터(약 -3.1)와 볼 반지름(0.2)을 고려한 여유 — 스폰 겹침 방지
     // 반사 벽(좌/우/상)을 판 가장자리보다 바깥으로 미는 여유 — 반사 공간 확보용.
     // 격자/몬스터 좌표는 불변, 벽만 밀림. Play 보며 인스펙터 튜닝.
     [SerializeField] private float wallPadding = 0.15f;
@@ -89,8 +89,9 @@ public class FieldManager : InGameManager
         CreateWall("LeftWall", new Vector2(left - thickness / 2f, (top + bounceFloorY) / 2f), new Vector2(thickness, height), wallLayer, isTrigger: false);
         CreateWall("RightWall", new Vector2(right + thickness / 2f, (top + bounceFloorY) / 2f), new Vector2(thickness, height), wallLayer, isTrigger: false);
         CreateWall("TopWall", new Vector2((left + right) / 2f, top + thickness / 2f), new Vector2(width + thickness * 2f, thickness), wallLayer, isTrigger: false);
-        // 하단도 물리 벽 — 볼이 한 번 튕기면 회수 모드로 전환되어 슈터에게 돌아감 (Ball.OnCollisionEnter2D의 노멀 판정)
-        CreateWall("BottomWall", new Vector2((left + right) / 2f, bounceFloorY - thickness / 2f), new Vector2(width + thickness * 2f, thickness), wallLayer, isTrigger: false);
+        // 반사 바닥 — 판 바닥(BottomWall 프로퍼티)보다 bottomWallDrop 아래(뿌리지대, 슈터 발밑).
+        // 볼이 한 번 튕기면 회수 모드로 전환되어 슈터에게 돌아감 (Ball.OnCollisionEnter2D의 노멀 판정)
+        CreateWall("BounceFloor", new Vector2((left + right) / 2f, bounceFloorY - thickness / 2f), new Vector2(width + thickness * 2f, thickness), wallLayer, isTrigger: false);
     }
 
     private void CreateWall(string name, Vector2 position, Vector2 size, int layer, bool isTrigger)
