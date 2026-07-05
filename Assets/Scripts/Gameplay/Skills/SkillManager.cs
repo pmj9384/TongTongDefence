@@ -64,6 +64,8 @@ public class SkillManager : InGameManager
         Monster monster = monsterCollider.GetComponent<Monster>();
         if (monster == null) return;
 
+        MonsterStatusEffects status = monster.GetComponent<MonsterStatusEffects>();
+
         var ctx = new DamageCalculator.Context
         {
             baseDamage = ball.BaseDamage,
@@ -71,14 +73,33 @@ public class SkillManager : InGameManager
             tinHeartBonus = PassiveValue(SkillId.TinHeart),
             mirrorPerBounce = PassiveValue(SkillId.MagicMirror),
             wallBounces = ball.WallBounceCount,
-            targetFrozen = false,   // Task 5(상태이상)에서 연결
-            frozenBonus = 0f,
+            targetFrozen = status != null && status.IsFrozen,
+            frozenBonus = status != null ? status.FrozenDamageBonus : 0f,
             critChance = CritChanceFor(monster, hitNormal),
             critMultiplier = 1.5f,  // 기획서: 치명타 데미지율 50%
         };
 
         monster.TakeDamage(DamageCalculator.Calc(ctx, rng, out bool isCrit), isCrit);
-        // 스킬별 온히트 효과(화상/냉동/레이저/파편)는 Task 5·6에서 이 지점에 연결
+        ApplyOnHitEffect(ball, monster, status);
+    }
+
+    // 볼 타입별 온히트 효과 — 수치는 전부 SkillTable(CSV)의 현재 레벨 값
+    private void ApplyOnHitEffect(Ball ball, Monster monster, MonsterStatusEffects status)
+    {
+        if (ball.ActiveSkill == null || status == null) return;
+
+        SkillLevel data = playerSkills.Table[ball.ActiveSkill.Value].GetLevel(ball.SkillLevel);
+        switch (ball.ActiveSkill.Value)
+        {
+            case SkillId.FireBall:   // a=지속, b=최대중첩, c=중첩당 초당피해
+                status.ApplyBurn(data.a, (int)data.b, data.c);
+                break;
+            case SkillId.IceBall:    // a=확률, b=지속, c=감속=받피증
+                if (rng.NextDouble() < data.a)
+                    status.ApplyFreeze(data.b, data.c, data.c);
+                break;
+            // LaserBall/GhostBall/ClusterBall 거동은 Task 6에서 이 지점에 연결
+        }
     }
 
     // 보유 패시브의 현재 레벨 a값 (미보유 = 0)
