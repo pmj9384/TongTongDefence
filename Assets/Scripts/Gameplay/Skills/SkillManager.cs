@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-// 스킬 시스템의 조정자 — 순수 코어(PlayerLevel/PlayerSkills/SkillDraft)를 소유하고
-// 게임 이벤트(처치)와 상태 전환(SkillSelection), UI를 잇는다. 계산·규칙은 전부 코어 몫.
+// 스킬 시스템의 조정자 — 순수 코어(PlayerLevel/PlayerSkills/SkillDraft/DamageCalculator)를 소유하고
+// 게임 이벤트(처치·볼 히트)와 상태 전환(SkillSelection), UI를 잇는다. 계산·규칙은 전부 코어 몫.
 public class SkillManager : InGameManager
 {
     [SerializeField] private SkillSelectionPanel selectionPanel;
@@ -14,7 +14,11 @@ public class SkillManager : InGameManager
     private PlayerSkills playerSkills;
     private PlayerLevel playerLevel;
     private readonly System.Random rng = new();
-    private int pendingDrafts;   // 연속 레벨업 시 3택지를 연달아 띄우기 위한 큐
+    private int pendingDrafts;                              // 연속 레벨업 시 3택지를 연달아 띄우기 위한 큐
+
+    private readonly List<SkillId> ballRotation = new();    // 보유 액티브 볼 발사 순환 [가정1]
+    private int rotationIndex;
+    private readonly HashSet<Monster> critConsumed = new(); // 단검 "적당 1회" 소모 기록
 
     public override void Initialize()
     {
@@ -25,16 +29,85 @@ public class SkillManager : InGameManager
         playerLevel = new PlayerLevel();
 
         GameManager.MonsterManager.OnMonsterKilled += HandleMonsterKilled;
+        GameManager.BallManager.OnBallHitMonster += HandleBallHit;
     }
 
     public override void Clear()
     {
         base.Clear();
         GameManager.MonsterManager.OnMonsterKilled -= HandleMonsterKilled;
+        GameManager.BallManager.OnBallHitMonster -= HandleBallHit;
     }
 
-    private void HandleMonsterKilled()
+    // ── 발사 로테이션 ─────────────────────────────────────────────
+
+    // 보유 액티브 볼이 있으면 순환 발사, 없으면 노멀 [가정1 — 원작 재관찰로 보정]
+    public BallLoadout GetNextLoadout()
     {
+        if (ballRotation.Count == 0) return BallLoadout.Normal;
+
+        SkillId id = ballRotation[rotationIndex % ballRotation.Count];
+        rotationIndex++;
+        int level = playerSkills.GetLevel(id);
+        return new BallLoadout
+        {
+            skill = id,
+            level = level,
+            damage = playerSkills.Table[id].GetLevel(level).ballDamage,
+        };
+    }
+
+    // ── 데미지 파이프라인 ─────────────────────────────────────────
+
+    private void HandleBallHit(Ball ball, Collider2D monsterCollider, Vector2 hitNormal)
+    {
+        Monster monster = monsterCollider.GetComponent<Monster>();
+        if (monster == null) return;
+
+        var ctx = new DamageCalculator.Context
+        {
+            baseDamage = ball.BaseDamage,
+            isNormalBall = ball.ActiveSkill == null,
+            tinHeartBonus = PassiveValue(SkillId.TinHeart),
+            mirrorPerBounce = PassiveValue(SkillId.MagicMirror),
+            wallBounces = ball.WallBounceCount,
+            targetFrozen = false,   // Task 5(상태이상)에서 연결
+            frozenBonus = 0f,
+            critChance = CritChanceFor(monster, hitNormal),
+            critMultiplier = 1.5f,  // 기획서: 치명타 데미지율 50%
+        };
+
+        monster.TakeDamage(DamageCalculator.Calc(ctx, rng, out bool isCrit), isCrit);
+        // 스킬별 온히트 효과(화상/냉동/레이저/파편)는 Task 5·6에서 이 지점에 연결
+    }
+
+    // 보유 패시브의 현재 레벨 a값 (미보유 = 0)
+    private float PassiveValue(SkillId id)
+    {
+        int level = playerSkills.GetLevel(id);
+        return level == 0 ? 0f : playerSkills.Table[id].GetLevel(level).a;
+    }
+
+    // 단검 치명타 [가정3]: 충돌 노멀은 표면→볼 방향이므로,
+    // 노멀이 아래(-y) = 볼이 아래에서 타격 = 전면(자수정) / 위(+y) = 후면(에메랄드). 적당 1회만.
+    private float CritChanceFor(Monster monster, Vector2 hitNormal)
+    {
+        if (critConsumed.Contains(monster)) return 0f;
+
+        float bonus = 0f;
+        if (hitNormal.y < -0.3f) bonus = PassiveValue(SkillId.AmethystDagger);
+        else if (hitNormal.y > 0.3f) bonus = PassiveValue(SkillId.EmeraldDagger);
+
+        if (bonus > 0f) critConsumed.Add(monster);
+        return bonus;
+    }
+
+    // ── 레벨업 → 3택지 ────────────────────────────────────────────
+
+    private void HandleMonsterKilled(Monster monster)
+    {
+        critConsumed.Remove(monster);   // 풀 재사용 대비 — 죽은 몬스터의 1회 소모 기록 해제
+
         pendingDrafts += playerLevel.AddKill();
         // 이미 선택 중이면 큐에만 쌓고, 선택이 끝날 때 이어서 연다
         if (pendingDrafts > 0 && GameManager.CurrentState == GameManager.GameState.GamePlay)
@@ -44,7 +117,7 @@ public class SkillManager : InGameManager
     private void OpenSelection()
     {
         List<SkillId> cards = SkillDraft.Draw(playerSkills, rng);
-        if (cards.Count == 0)             // 후보 소진 [가정6] — 선택 스킵
+        if (cards.Count == 0)           // 후보 소진 [가정6] — 선택 스킵
         {
             pendingDrafts = 0;
             return;
@@ -56,13 +129,17 @@ public class SkillManager : InGameManager
 
     private void HandleCardPicked(SkillId picked)
     {
+        bool isNew = !playerSkills.Has(picked);
         playerSkills.Acquire(picked);
+        if (isNew && playerSkills.Table[picked].kind == SkillKind.ActiveBall)
+            ballRotation.Add(picked);   // 새 액티브 볼은 발사 로테이션에 합류
+
         selectionPanel.Hide();
         pendingDrafts--;
 
         if (pendingDrafts > 0)
         {
-            OpenSelection();              // 연속 레벨업 — 다음 드래프트 (상태는 SkillSelection 유지)
+            OpenSelection();            // 연속 레벨업 — 다음 드래프트 (상태는 SkillSelection 유지)
         }
         else
         {

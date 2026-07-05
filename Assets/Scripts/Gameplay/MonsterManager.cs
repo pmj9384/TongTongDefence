@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class MonsterManager : InGameManager
 {
-    public event Action OnMonsterKilled;
+    public event Action<Monster> OnMonsterKilled;   // 처치된 몬스터 전달 (레벨 카운트·치명타 1회 소모 해제·성냥 폭발 위치)
     public event Action OnFieldCleared;
 
     [SerializeField] private GameObject monsterPrefab;
@@ -54,7 +54,7 @@ public class MonsterManager : InGameManager
         field.Remove(monster);
         spawner.Release(monster);
 
-        OnMonsterKilled?.Invoke();
+        OnMonsterKilled?.Invoke(monster);
         if (field.IsEmpty)   // 동기 스폰이라 스폰 도중 조기 발화 경합이 없음 (코루틴/가드 삭제됨)
             OnFieldCleared?.Invoke();
     }

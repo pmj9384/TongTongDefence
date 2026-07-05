@@ -6,10 +6,15 @@ using UnityEngine;
 public class Ball : MonoBehaviour
 {
     public event Action<Ball> OnHitWall;
-    public event Action<Ball, Collider2D> OnHitMonster;
+    public event Action<Ball, Collider2D, Vector2> OnHitMonster;   // (볼, 몬스터 콜라이더, 충돌 노멀)
     public event Action<Ball> OnExitField;
 
     public int WallBounceCount { get; private set; }
+
+    // 발사 시 주입되는 타입 파라미터 — Ball은 매니저를 모르고, 데미지 계산은 SkillManager 몫
+    public SkillId? ActiveSkill { get; private set; }
+    public int SkillLevel { get; private set; }
+    public int BaseDamage { get; private set; }
 
     private const float ReturnArriveRadius = 0.3f;
 
@@ -23,7 +28,7 @@ public class Ball : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
     }
 
-    public void Launch(Vector2 direction, float speed, Vector2 returnTarget)
+    public void Launch(Vector2 direction, float speed, Vector2 returnTarget, BallLoadout loadout)
     {
         rb.gravityScale = 0f;
         rb.linearVelocity = direction.normalized * speed;
@@ -31,6 +36,10 @@ public class Ball : MonoBehaviour
         this.returnTarget = returnTarget;
         isReturning = false;
         WallBounceCount = 0;
+
+        ActiveSkill = loadout.skill;
+        SkillLevel = loadout.level;
+        BaseDamage = loadout.damage;
     }
 
     private void FixedUpdate()
@@ -64,9 +73,9 @@ public class Ball : MonoBehaviour
         }
         else if (layer == LayerMask.NameToLayer("Monster"))
         {
-            // 원작: 볼은 블록(몬스터)에 맞으면 데미지를 주고 튕겨나감 — 소멸하지 않음
-            OnHitMonster?.Invoke(this, collision.collider);
-            collision.collider.GetComponent<Monster>().TakeDamage(8, false);   // TEMP: SkillManager에서 교체
+            // 원작: 볼은 블록(몬스터)에 맞으면 데미지를 주고 튕겨나감 — 소멸하지 않음.
+            // 데미지 계산·적용은 이벤트를 받은 SkillManager가 담당 (Ball은 사실만 보고)
+            OnHitMonster?.Invoke(this, collision.collider, collision.GetContact(0).normal);
         }
     }
 }
