@@ -11,6 +11,7 @@ public class GameManager : MonoBehaviour
         GameReady,
         GamePlay,
         GameStop,
+        SkillSelection,   // 3택지 스킬 선택 — 게임 완전 정지 (원작 관찰 확정)
         GameOver,
         GameClear,
         Max,
@@ -37,6 +38,7 @@ public class GameManager : MonoBehaviour
     public BallManager BallManager { get; private set; }
     public MonsterManager MonsterManager { get; private set; }
     public WaveManager WaveManager { get; private set; }
+    public SkillManager SkillManager { get; private set; }
     // TODO: 게임별 매니저 추가
 
     #endregion
@@ -84,6 +86,10 @@ public class GameManager : MonoBehaviour
         AddGameStateStartAction(GameState.GameStop, PauseTimeScale);
         AddGameStateExitAction(GameState.GameStop, ResumeTimeScale);
 
+        // 스킬 선택 중 완전 정지 — GameStop과 동일 패턴 (몬스터 하강·볼·쿨다운 전부 멈춤)
+        AddGameStateStartAction(GameState.SkillSelection, PauseTimeScale);
+        AddGameStateExitAction(GameState.SkillSelection, ResumeTimeScale);
+
         // BGM 연결 - BgmClipId는 프로젝트마다 Defines/Enums.cs에 정의 필요
         // AddGameStateEnterAction(GameState.GameReady, () => SoundManager.Instance.PlayBgm(BgmClipId.IngameBGM));
         AddGameStateEnterAction(GameState.GameStop, () => SoundManager.Instance.PauseBgm());
@@ -111,6 +117,7 @@ public class GameManager : MonoBehaviour
         BallManager = RegisterManager<BallManager>(managerObjects);
         MonsterManager = RegisterManager<MonsterManager>(managerObjects);
         WaveManager = RegisterManager<WaveManager>(managerObjects);
+        SkillManager = RegisterManager<SkillManager>(managerObjects);
         // TODO: 게임별 매니저 등록 추가
 
         foreach (var manager in managers)

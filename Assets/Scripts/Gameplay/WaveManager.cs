@@ -1,9 +1,10 @@
 using System;
 using UnityEngine;
 
+// 웨이브 진행만 담당: 시작 → 전멸 시 다음 웨이브 스폰 → 마지막 클리어 시 GameClear.
+// 처치 수 카운팅/3택지 발동은 SkillManager(PlayerLevel)의 몫 — 여기서 하지 않는다.
 public class WaveManager : InGameManager
 {
-    public event Action OnKillConditionMet;
     public event Action OnWaveAllClear;
 
     // 비워두면 Initialize에서 공식으로 자동 생성. Inspector에 넣으면 그게 우선
@@ -11,7 +12,6 @@ public class WaveManager : InGameManager
 
     private MonsterManager monsterManager;
     private int currentWave;
-    private int killCountThisWave;
     private bool hasStarted;
 
     public override void Initialize()
@@ -24,7 +24,6 @@ public class WaveManager : InGameManager
         if (waves == null || waves.Length == 0)
             waves = GenerateDefaultWaves();
 
-        monsterManager.OnMonsterKilled += HandleMonsterKilled;
         monsterManager.OnFieldCleared += HandleFieldCleared;
         GameManager.AddGameStateEnterAction(GameManager.GameState.GamePlay, TryStartFirstWave);
     }
@@ -32,7 +31,6 @@ public class WaveManager : InGameManager
     public override void Clear()
     {
         base.Clear();
-        monsterManager.OnMonsterKilled -= HandleMonsterKilled;
         monsterManager.OnFieldCleared -= HandleFieldCleared;
         GameManager.RemoveGameStateEnterAction(GameManager.GameState.GamePlay, TryStartFirstWave);
     }
@@ -47,15 +45,7 @@ public class WaveManager : InGameManager
     private void StartWave(int waveIndex)
     {
         currentWave = waveIndex;
-        killCountThisWave = 0;
         monsterManager.Spawn(waves[waveIndex].monsterCount, waves[waveIndex].monsterHp, waveIndex);
-    }
-
-    private void HandleMonsterKilled()
-    {
-        killCountThisWave++;
-        if (killCountThisWave == waves[currentWave].killCondition)
-            OnKillConditionMet?.Invoke();   // 상태 전환(SkillSelection)은 스킬 플랜에서 — 여기선 발행만
     }
 
     private void HandleFieldCleared()
@@ -77,12 +67,10 @@ public class WaveManager : InGameManager
         var result = new WaveData[20];
         for (int i = 0; i < result.Length; i++)
         {
-            int count = 5 + i;
             result[i] = new WaveData
             {
-                monsterCount = count,
+                monsterCount = 5 + i,
                 monsterHp = 10 + i * 4,
-                killCondition = count / 2,
             };
         }
         return result;
