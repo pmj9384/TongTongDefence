@@ -2,7 +2,7 @@
     "name": "TongTong.EditModeTests",
     "rootNamespace": "",
     "references": [
-        "TongTong.SkillCore",
+        "TongTong.Core",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

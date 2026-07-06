@@ -8,6 +8,17 @@ public class WaveManager : InGameManager
 {
     public event Action OnWaveAllClear;
 
+    // 결과 화면 진행도(처치 비율)의 분모 — 화면 노출 없음, 계산용 내부 값 (원작도 %만 표시)
+    public int TotalMonsterCount
+    {
+        get
+        {
+            int sum = 0;
+            foreach (WaveData wave in waves) sum += wave.monsterCount;
+            return sum;
+        }
+    }
+
     // 비워두면 Initialize에서 공식으로 자동 생성. Inspector에 넣으면 그게 우선
     [SerializeField] private WaveData[] waves;
     [SerializeField] private float nextWaveDelay = 0.8f;   // 전멸 → 다음 웨이브 텀 (원작 재현 + 캐스케이드 분리)
