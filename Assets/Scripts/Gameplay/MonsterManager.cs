@@ -128,10 +128,11 @@ public class MonsterManager : InGameManager
             OnFieldCleared?.Invoke();
     }
 
-    // 데미지 플로터 — 모든 데미지 소스(볼/화상/레이저/파편/폭발)가 Monster 이벤트로 모이므로 여기서 일괄 표시
+    // 데미지 플로터 — 모든 데미지 소스(볼/화상/레이저/파편/폭발)가 Monster 이벤트로 모이므로 여기서 일괄 표시.
+    // 위치 = 몬스터 중앙 (원작 관찰 — 겹쳐도 그대로, 유저 확정)
     private void HandleMonsterDamaged(Monster monster, int damage, bool isCritical)
     {
-        popupSpawner.Show(monster.transform.position + Vector3.up * (fieldManager.CellWidth * 0.7f), damage, isCritical);
+        popupSpawner.Show(monster.transform.position, damage, isCritical);
     }
 
     private void ClearAllMonsters()

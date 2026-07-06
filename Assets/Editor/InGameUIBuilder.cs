@@ -11,6 +11,54 @@ public static class InGameUIBuilder
 {
     private static TMP_FontAsset font;
 
+    // 조준선을 점선+끝점 조준점으로 (원작 관찰) — 기존 파츠 눈튜닝을 건드리지 않는 별도 메뉴
+    [MenuItem("Tools/Build Aim Line (점선+조준점)")]
+    public static void BuildAimLine()
+    {
+        var shooter = Object.FindFirstObjectByType<Shooter>(FindObjectsInactive.Include);
+        if (shooter == null) { Debug.LogError("Shooter 없음"); return; }
+
+        // 점선 머티리얼 (dash 텍스처 + Tile 모드)
+        var dashTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/Sprites/UI/aim_dash.png");
+        if (dashTex == null) { Debug.LogError("aim_dash.png 없음"); return; }
+        var mat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/AimDashed.mat");
+        if (mat == null)
+        {
+            if (!AssetDatabase.IsValidFolder("Assets/Materials")) AssetDatabase.CreateFolder("Assets", "Materials");
+            mat = new Material(Shader.Find("Sprites/Default")) { mainTexture = dashTex };
+            AssetDatabase.CreateAsset(mat, "Assets/Materials/AimDashed.mat");
+        }
+        mat.mainTexture = dashTex;
+        mat.mainTextureScale = new Vector2(14f, 1f);   // 반복 밀도 ↑ = 짧은 점이 촘촘히 (값 키울수록 촘촘)
+        EditorUtility.SetDirty(mat);
+
+        var line = shooter.GetComponent<LineRenderer>();
+        line.sharedMaterial = mat;
+        line.textureMode = LineTextureMode.Tile;   // 길이 따라 dash 반복 = 점선
+        line.startColor = line.endColor = new Color(0.72f, 0.72f, 0.7f, 0.9f);    // 원작: 회색
+        line.startWidth = line.endWidth = 0.045f;                                  // 가는 선 (원작 #52)
+
+        // 끝점 조준 레티클 (원작 #53: 끊긴 링 + 빨간 중심점) — 재실행 시 스프라이트 갱신
+        Transform dot = shooter.transform.Find("AimDot");
+        if (dot == null)
+        {
+            var dotGo = new GameObject("AimDot");
+            dot = dotGo.transform;
+            dot.SetParent(shooter.transform, false);
+        }
+        dot.localScale = Vector3.one * 1.2f;
+        var reticleSr = dot.GetComponent<SpriteRenderer>() ?? dot.gameObject.AddComponent<SpriteRenderer>();
+        reticleSr.sprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Resources/Sprites/UI/aim_reticle.png");
+        reticleSr.color = Color.white;
+        reticleSr.sortingOrder = 5;
+        var so = new SerializedObject(shooter);
+        so.FindProperty("aimDot").objectReferenceValue = dot;
+        so.ApplyModifiedProperties();
+
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        Debug.Log("[InGameUIBuilder] 점선 조준선 + 조준점 완료 — 씬 저장하세요");
+    }
+
     // 캐릭터 파츠 조립(조준 연출용) + PlayerHpBar 컴포넌트를 UI 오브젝트로 이사
     [MenuItem("Tools/Build Shooter Parts + Move HpBar")]
     public static void BuildShooterParts()
@@ -91,7 +139,7 @@ public static class InGameUIBuilder
         var go = new GameObject("DamagePopup");
         var tmp = go.AddComponent<TextMeshPro>();
         tmp.font = kostar;
-        tmp.fontSize = 5;                                  // 월드 TMP 크기 (셀 대비 눈튜닝 가능)
+        tmp.fontSize = 3f;                                 // 월드 TMP 크기 — "너무 크다" 피드백 반영 [눈튜닝]
         tmp.fontStyle = FontStyles.Bold;
         tmp.alignment = TextAlignmentOptions.Center;
         tmp.text = "99";

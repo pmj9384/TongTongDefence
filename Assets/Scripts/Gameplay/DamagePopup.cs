@@ -10,7 +10,7 @@ public class DamagePopup : MonoBehaviour
     public event Action<DamagePopup> OnFinished;   // 풀 반환 신호
 
     private const float Lifetime = 0.6f;
-    private const float RiseSpeed = 1.2f;
+    private const float RiseSpeed = 0.4f;   // 몬스터 중앙에서 살짝만 뜨고 사라지게 (유저 확정)
 
     private TMP_Text text;
     private float timer;

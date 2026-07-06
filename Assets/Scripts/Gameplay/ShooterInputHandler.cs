@@ -36,6 +36,9 @@ public class ShooterInputHandler
             UpdateDirection(Mouse.current.position.ReadValue());
     }
 
+    // 조준 각도 한계 — 수직(위) 기준 좌우 최대 각. 필드 하단 끝자락 방향(≈75°)까지만 꺾임 (원작 감각)
+    private const float MaxAngleFromUp = 75f;
+
     private void UpdateDirection(Vector2 screenPos)
     {
         Camera cam = Camera.main;
@@ -43,8 +46,11 @@ public class ShooterInputHandler
         Vector3 worldPos = cam.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, camZ));
 
         Vector2 dir = ((Vector2)worldPos - (Vector2)origin.position).normalized;
-        if (dir.y < 0.1f)
-            dir = new Vector2(dir.x, 0.1f).normalized;
+
+        float angle = Mathf.Atan2(dir.x, dir.y) * Mathf.Rad2Deg;   // 위 기준 좌우 각 (+오른쪽)
+        angle = Mathf.Clamp(angle, -MaxAngleFromUp, MaxAngleFromUp);
+        float rad = angle * Mathf.Deg2Rad;
+        dir = new Vector2(Mathf.Sin(rad), Mathf.Cos(rad));
 
         OnDirectionChanged?.Invoke(dir);
     }
