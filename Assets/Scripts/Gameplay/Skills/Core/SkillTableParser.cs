@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 
 // CSV 텍스트 → 스킬 정의 사전. 순수 함수 — 파일/Resources 접근은 호출측(SkillManager) 몫.
-// 스키마: skillId,kind,level,ballDamage,a,b,c,displayName (헤더 1행 + 30행)
+// 스키마: skillId,kind,level,ballDamage,a,b,c,displayName,description,icon (헤더 1행 + 30행)
 // CsvHelper 미사용 — 값에 쉼표/따옴표가 없는 통제된 스키마라 미니 파서로 충분 (AnimalBreakOut 패턴에서 의존성만 제거)
 public static class SkillTableParser
 {
@@ -20,7 +20,7 @@ public static class SkillTableParser
             if (line.Length == 0) continue;
 
             string[] cols = line.Split(',');
-            if (cols.Length < 8)
+            if (cols.Length < 10)
                 throw new FormatException($"SkillTable {i + 1}행: 컬럼 수 부족 ({cols.Length})");
 
             var id = (SkillId)Enum.Parse(typeof(SkillId), cols[0]);
@@ -31,7 +31,12 @@ public static class SkillTableParser
 
             if (!table.TryGetValue(id, out SkillDef def))
             {
-                def = new SkillDef { id = id, kind = kind, displayName = cols[7], levels = new SkillLevel[LevelCount] };
+                def = new SkillDef
+                {
+                    id = id, kind = kind, displayName = cols[7],
+                    description = cols[8], iconName = cols[9],
+                    levels = new SkillLevel[LevelCount],
+                };
                 table.Add(id, def);
             }
 

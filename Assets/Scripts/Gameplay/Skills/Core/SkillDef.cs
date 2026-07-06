@@ -23,6 +23,8 @@ public class SkillDef
     public SkillId id;
     public SkillKind kind;
     public string displayName;
+    public string description;   // 카드 UI 설명 문구 (기획자 수정 영역)
+    public string iconName;      // Resources 상대 경로 — 스킬↔아이콘 매핑의 SSOT (코드 하드코딩 대체)
     public SkillLevel[] levels;   // 길이 3 (Lv1~3), 인덱스 = 레벨-1
 
     public SkillLevel GetLevel(int level) => levels[level - 1];

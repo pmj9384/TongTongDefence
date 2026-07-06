@@ -68,6 +68,17 @@ public class SkillTableParserTests
     public void 레벨_범위_밖은_예외()
     {
         Assert.Throws<System.FormatException>(() =>
-            SkillTableParser.Parse("header\nFireBall,ActiveBall,4,21,4,3,8,파이어 볼\n"));
+            SkillTableParser.Parse("header\nFireBall,ActiveBall,4,21,4,3,8,파이어 볼,설명,아이콘\n"));
+    }
+
+    [Test]
+    public void 설명과_아이콘_컬럼_로드()
+    {
+        var table = LoadReal();
+        foreach (SkillDef def in table.Values)
+        {
+            Assert.IsNotEmpty(def.description, $"{def.id} 설명");
+            Assert.IsNotEmpty(def.iconName, $"{def.id} 아이콘 경로");
+        }
     }
 }
