@@ -44,7 +44,7 @@ public static class InGameUIBuilder
         hud.transform.SetParent(topBar, false);
         Stretch((RectTransform)hud.transform);
 
-        Text(hud.transform, "StageName", "1. 버려진 숲", 34, new(0.5f, 1f), new(0, -28), new(500, 44), bold: true);
+        Text(hud.transform, "StageName", "1. 깊은 숲", 34, new(0.5f, 1f), new(0, -28), new(500, 44), bold: true);
 
         Image(hud.transform, "ProgressBorder", new Color(0.85f, 0.8f, 0.7f, 0.9f), new(0.5f, 1f), new(0, -66), new(408, 30));
         var track = Image(hud.transform, "ProgressTrack", new Color(0.08f, 0.08f, 0.08f, 0.95f), new(0.5f, 1f), new(0, -66), new(400, 22));
