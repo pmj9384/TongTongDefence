@@ -47,7 +47,7 @@ public class InGameHud : MonoBehaviour
             lastLevel = level.Level;
             lastKillsIntoLevel = level.KillsIntoLevel;
             levelFill.fillAmount = (float)level.KillsIntoLevel / level.KillsToNext;
-            levelText.text = level.Level.ToString();
+            levelText.text = $"Lv.{level.Level}";
         }
     }
 
@@ -58,40 +58,45 @@ public class InGameHud : MonoBehaviour
             gameManager.SetGameState(GameManager.GameState.GameStop);
     }
 
+    // 좌표는 전부 부모(TopBar 존, 높이 160) 상단 기준 — 존이 세이프 에어리어 안에서 잘리지 않게 보장
     private void Build()
     {
         // 스테이지명 (상단 중앙)
         Text stage = CreateText("StageName", 34, FontStyle.Bold, Color.white);
-        Anchor(stage.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -42f), new Vector2(500f, 44f));
+        Anchor(stage.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -28f), new Vector2(500f, 44f));
         stage.text = stageName;
 
-        // 진행도 바 (스테이지명 바로 아래, 원작: 검정 트랙 + 빨강 fill + %)
-        Image progressTrack = CreateImage("ProgressTrack", new Color(0.08f, 0.08f, 0.08f, 0.9f));
-        Anchor(progressTrack.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -78f), new Vector2(320f, 16f));
-        progressFill = CreateFill(progressTrack, new Color(0.82f, 0.2f, 0.18f));
-        progressText = CreateText("ProgressText", 20, FontStyle.Normal, Color.white);
-        Anchor(progressText.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -78f), new Vector2(320f, 24f));
+        // 진행도 바 — 원작: 검정 트랙 + 빨강 fill + %. 밝은 테두리로 배경과 분리
+        Image progressBorder = CreateImage("ProgressBorder", new Color(0.85f, 0.8f, 0.7f, 0.9f));
+        Anchor(progressBorder.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -66f), new Vector2(408f, 30f));
+        Image progressTrack = CreateImage("ProgressTrack", new Color(0.08f, 0.08f, 0.08f, 0.95f));
+        Anchor(progressTrack.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -66f), new Vector2(400f, 22f));
+        progressFill = CreateFill(progressTrack, new Color(0.85f, 0.22f, 0.18f));
+        progressText = CreateText("ProgressText", 20, FontStyle.Bold, Color.white);
+        Anchor(progressText.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -66f), new Vector2(400f, 26f));
 
-        // 레벨(킬) 게이지 (전폭, 원작: 주황 fill + 오른쪽 레벨 배지)
+        // 레벨(킬) 게이지 — 오른쪽에 배지(마름모)+Lv.N 텍스트 자리를 비워둠
         Image levelTrack = CreateImage("LevelTrack", new Color(0.1f, 0.09f, 0.07f, 0.9f));
         var levelRect = levelTrack.rectTransform;
         levelRect.anchorMin = new Vector2(0f, 1f);
         levelRect.anchorMax = new Vector2(1f, 1f);
-        levelRect.offsetMin = new Vector2(60f, -132f);
-        levelRect.offsetMax = new Vector2(-90f, -110f);
+        levelRect.offsetMin = new Vector2(40f, -122f);
+        levelRect.offsetMax = new Vector2(-150f, -100f);
         levelFill = CreateFill(levelTrack, new Color(0.95f, 0.6f, 0.15f));
 
-        Image badge = CreateImage("LevelBadge", new Color(0.25f, 0.27f, 0.32f));
-        Anchor(badge.rectTransform, new Vector2(1f, 1f), new Vector2(-58f, -121f), new Vector2(52f, 40f));
+        // 배지: 흰 사각형을 45° 돌린 마름모 (전용 스프라이트 없이 원작 배지 자리 표현)
+        Image badge = CreateImage("LevelBadge", new Color(0.95f, 0.6f, 0.15f));
+        Anchor(badge.rectTransform, new Vector2(1f, 1f), new Vector2(-128f, -111f), new Vector2(26f, 26f));
+        badge.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 45f);
         levelText = CreateText("LevelText", 26, FontStyle.Bold, new Color(1f, 0.9f, 0.6f));
-        Anchor(levelText.rectTransform, new Vector2(1f, 1f), new Vector2(-58f, -121f), new Vector2(52f, 40f));
+        Anchor(levelText.rectTransform, new Vector2(1f, 1f), new Vector2(-70f, -111f), new Vector2(100f, 40f));
 
         // 일시정지 버튼 (우상단)
         Image pauseBg = CreateImage("PauseButton", new Color(0.15f, 0.16f, 0.2f, 0.9f));
-        Anchor(pauseBg.rectTransform, new Vector2(1f, 1f), new Vector2(-48f, -44f), new Vector2(64f, 64f));
+        Anchor(pauseBg.rectTransform, new Vector2(1f, 1f), new Vector2(-40f, -36f), new Vector2(58f, 58f));
         pauseBg.gameObject.AddComponent<Button>().onClick.AddListener(TogglePause);
-        Text pauseGlyph = CreateText("PauseGlyph", 30, FontStyle.Bold, Color.white);
-        Anchor(pauseGlyph.rectTransform, new Vector2(1f, 1f), new Vector2(-48f, -44f), new Vector2(64f, 64f));
+        Text pauseGlyph = CreateText("PauseGlyph", 28, FontStyle.Bold, Color.white);
+        Anchor(pauseGlyph.rectTransform, new Vector2(1f, 1f), new Vector2(-40f, -36f), new Vector2(58f, 58f));
         pauseGlyph.text = "II";
         pauseGlyph.raycastTarget = false;   // 버튼 클릭 방해 금지
     }

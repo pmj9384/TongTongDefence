@@ -42,9 +42,9 @@ public class SafeAreaCanvas : MonoBehaviour
     private void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
-#if !UNITY_EDITOR
+        // 에디터 제외 가드 제거 — Device Simulator가 Screen.safeArea를 제공하므로
+        // 에디터에서도 적용해야 노치 잘림을 Play로 검증 가능 (시뮬레이터 미사용 시 전체화면 = 무해)
         ApplySafeAreaCanvasAnchor();
-#endif
     }
 
     public void ApplySafeAreaCanvasAnchor()
