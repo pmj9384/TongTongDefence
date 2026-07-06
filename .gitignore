@@ -19,3 +19,6 @@ Thumbs.db
 # JetBrains
 .idea/
 *.suo
+
+# 빌드 산출물
+Builds/
