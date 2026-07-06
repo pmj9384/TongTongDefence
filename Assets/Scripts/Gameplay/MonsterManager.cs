@@ -109,16 +109,18 @@ public class MonsterManager : InGameManager
     }
 
     // 돌진 도착 — 플레이어 피격 + 몬스터 소멸. "처치"가 아니므로 OnMonsterKilled 미발행
-    // (도달 소멸로 레벨업/성냥 폭발이 발동하면 안 됨). 필드가 비면 웨이브는 정상 진행
+    // (도달 소멸로 레벨업/성냥 폭발이 발동하면 안 됨). 필드가 비면 웨이브는 정상 진행.
+    // 순서 주의: 몬스터 정리 먼저, 데미지(GameOver 전환 유발 가능)는 마지막 —
+    // 전환 액션에서 예외가 나도 유령 몬스터(구독/필드 잔류)가 안 생기게 (실사례: GameUIManager 크래시)
     private void HandleMonsterCrashed(MonsterMover mover)
     {
         Monster monster = mover.GetComponent<Monster>();
-        GameManager.PlayerManager.TakeDamage(attackDamage);
-        popupSpawner.Show(GameManager.PlayerManager.Position + Vector2.up * 0.5f, attackDamage, false);
-
         Unsubscribe(monster);
         field.Remove(monster);
         pendingRelease.Add(monster);
+
+        popupSpawner.Show(GameManager.PlayerManager.Position + Vector2.up * 0.5f, attackDamage, false);
+        GameManager.PlayerManager.TakeDamage(attackDamage);
         if (field.IsEmpty)
             OnFieldCleared?.Invoke();
     }
@@ -133,6 +135,7 @@ public class MonsterManager : InGameManager
     {
         foreach (Monster monster in field.ActiveMonsters)
         {
+            if (monster == null) continue;   // 씬 언로드 시 몬스터가 매니저보다 먼저 Destroy되는 순서 대비
             Unsubscribe(monster);
             spawner.Release(monster);
         }

@@ -91,6 +91,11 @@ public class GameManager : MonoBehaviour
         AddGameStateStartAction(GameState.SkillSelection, PauseTimeScale);
         AddGameStateExitAction(GameState.SkillSelection, ResumeTimeScale);
 
+        // 결과 상태도 완전 정지 — 예약된 웨이브 코루틴(WaitForSeconds)·발사·하강이 결과 화면 뒤에서
+        // 계속 돌던 버그. 재시작은 RestartGame이 timeScale=1 복원 후 씬 리로드라 Exit 액션 불필요
+        AddGameStateStartAction(GameState.GameOver, PauseTimeScale);
+        AddGameStateStartAction(GameState.GameClear, PauseTimeScale);
+
         // BGM 연결 - BgmClipId는 프로젝트마다 Defines/Enums.cs에 정의 필요
         // AddGameStateEnterAction(GameState.GameReady, () => SoundManager.Instance.PlayBgm(BgmClipId.IngameBGM));
         AddGameStateEnterAction(GameState.GameStop, () => SoundManager.Instance.PauseBgm());

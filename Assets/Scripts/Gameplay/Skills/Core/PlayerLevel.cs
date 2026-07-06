@@ -8,12 +8,14 @@ public class PlayerLevel
 
     public int Level { get; private set; } = 1;
     public int KillsIntoLevel { get; private set; }
+    public int TotalKills { get; private set; }   // 처치 누계 — 결과 화면 진행도(처치 비율)의 분자
     public int KillsToNext => BaseKillsToLevel + (Level - 1) * GrowthPerLevel;
 
     // 처치 1건 반영 → 이번 킬로 오른 레벨 수 반환 (0 또는 1 이상 — 초과분은 다음 레벨로 이월)
     public int AddKill()
     {
         KillsIntoLevel++;
+        TotalKills++;
         int levelUps = 0;
         while (KillsIntoLevel >= KillsToNext)
         {

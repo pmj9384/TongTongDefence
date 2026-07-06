@@ -3,6 +3,16 @@ using NUnit.Framework;
 public class PlayerLevelTests
 {
     [Test]
+    public void TotalKills는_레벨업과_무관하게_누적()
+    {
+        var level = new PlayerLevel();
+        for (int i = 0; i < 8; i++) level.AddKill();   // 3+4=7킬에서 2레벨업 후에도 누계 유지
+
+        Assert.AreEqual(8, level.TotalKills);
+        Assert.AreEqual(3, level.Level);
+    }
+
+    [Test]
     public void 첫_레벨업은_3킬()
     {
         var lv = new PlayerLevel();
