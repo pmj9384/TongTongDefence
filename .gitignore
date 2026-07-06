@@ -22,3 +22,6 @@ Thumbs.db
 
 # 빌드 산출물
 Builds/
+
+# Unity 빌드 임시
+.utmp/
