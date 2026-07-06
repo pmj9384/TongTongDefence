@@ -30,7 +30,11 @@ public class ShooterAimer
 
     public void Tick(Vector2 direction)
     {
-        if (ballManager.CurrentGameState != GameManager.GameState.GamePlay) return;
+        if (ballManager.CurrentGameState != GameManager.GameState.GamePlay)
+        {
+            lineRenderer.positionCount = 0;   // 정지/선택/결과 화면에 마지막 조준선이 박제되지 않게
+            return;
+        }
 
         CalculateTrajectory(origin.position, direction);
         lineRenderer.positionCount = points.Count;
@@ -62,8 +66,10 @@ public class ShooterAimer
             if (hit.collider.gameObject.layer == monsterLayer)
                 break;
 
-            pos = hit.point;
             vel = Vector2.Reflect(vel, hit.normal);
+            // 표면 정확히 그 점에서 재출발하면 부동소수점에 따라 같은 벽을 거리 0으로 재히트
+            // → 반사 횟수만 소진되고 선이 끊김 (측면 벽에서 간헐 재현). 진행 방향으로 살짝 밀어 탈출
+            pos = hit.point + vel * 0.01f;
         }
     }
 }

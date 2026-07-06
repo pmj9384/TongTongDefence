@@ -52,7 +52,7 @@ public class SkillDraftTests
     }
 
     [Test]
-    public void 후보가_전부_소진되면_빈_목록()
+    public void 후보가_전부_소진되면_노멀볼_채움_카드만()
     {
         var p = NewPlayer();
         // 액티브 4종 만렙 + 패시브 2종 만렙 → 나머지는 만석 규칙으로 전부 배제
@@ -62,7 +62,23 @@ public class SkillDraftTests
             p.Acquire(id); p.Acquire(id); p.Acquire(id);
         }
 
-        Assert.IsEmpty(SkillDraft.Draw(p, new Random(7)));
+        CollectionAssert.AreEqual(new[] { SkillId.NormalBall }, SkillDraft.Draw(p, new Random(7)));
+    }
+
+    [Test]
+    public void 후보_2장이면_노멀볼이_한_자리를_채워_3장()
+    {
+        var p = NewPlayer();
+        // 액티브 4종 만렙 + 패시브 만석(2종 보유, 그중 1종 만렙) → 후보 = 거울 업그레이드 + ...
+        foreach (SkillId id in new[] { SkillId.FireBall, SkillId.IceBall, SkillId.LaserBall, SkillId.GhostBall,
+                                       SkillId.TinHeart })
+        {
+            p.Acquire(id); p.Acquire(id); p.Acquire(id);
+        }
+        p.Acquire(SkillId.MagicMirror);   // 패시브 만석 — 후보는 거울 업그레이드 1장뿐
+
+        List<SkillId> cards = SkillDraft.Draw(p, new Random(3));
+        CollectionAssert.AreEqual(new[] { SkillId.MagicMirror, SkillId.NormalBall }, cards);
     }
 
     [Test]

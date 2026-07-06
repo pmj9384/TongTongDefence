@@ -57,38 +57,39 @@ public class PausePanel : UIElement
     {
         overlay = CreateChild("Overlay", transform);
         Image dim = overlay.AddComponent<Image>();
-        dim.color = new Color(0f, 0f, 0f, 0.8f);
+        dim.color = new Color(0f, 0f, 0f, 0.9f);   // 원작처럼 게임 화면이 거의 안 비치게
         var overlayRect = overlay.GetComponent<RectTransform>();
         overlayRect.anchorMin = Vector2.zero;
         overlayRect.anchorMax = Vector2.one;
         overlayRect.offsetMin = overlayRect.offsetMax = Vector2.zero;
 
-        CreateText(overlay.transform, "Title", 64, new Vector2(0f, 320f), new Color(1f, 0.9f, 0.6f)).text = "일시정지";
-        CreateText(overlay.transform, "Stage", 30, new Vector2(0f, 240f), new Color(0.6f, 0.8f, 1f)).text = "Stage 1  (Normal)";
+        // 원작(#36) 비율: 타이틀 상단 1/4 · Stage 그 아래 · 슬롯 밴드 중상단 전폭 · [이어하기] 하단
+        CreateText(overlay.transform, "Title", 76, new Vector2(0f, 430f), new Color(1f, 0.9f, 0.6f)).text = "일시정지";
+        CreateText(overlay.transform, "Stage", 34, new Vector2(0f, 330f), new Color(0.6f, 0.8f, 1f)).text = "Stage 1  (Normal)";
 
         // 슬롯 밴드 — Active 4칸(빨간 틀) 왼쪽, Passive 2칸(청록 틀) 오른쪽 (원작 배치)
-        CreateText(overlay.transform, "ActiveLabel", 24, new Vector2(-170f, 160f), new Color(1f, 0.6f, 0.55f)).text = "Active Skill";
-        CreateText(overlay.transform, "PassiveLabel", 24, new Vector2(210f, 160f), new Color(0.55f, 0.9f, 0.85f)).text = "Passive Skill";
-        BuildSlotRow(activeIcons, ActiveSlots, new Color(0.55f, 0.2f, 0.18f), -320f);
-        BuildSlotRow(passiveIcons, PassiveSlots, new Color(0.16f, 0.45f, 0.42f), 130f);
+        CreateText(overlay.transform, "ActiveLabel", 28, new Vector2(-235f, 235f), new Color(1f, 0.6f, 0.55f)).text = "Active Skill";
+        CreateText(overlay.transform, "PassiveLabel", 28, new Vector2(255f, 235f), new Color(0.55f, 0.9f, 0.85f)).text = "Passive Skill";
+        BuildSlotRow(activeIcons, ActiveSlots, new Color(0.55f, 0.2f, 0.18f), -400f);
+        BuildSlotRow(passiveIcons, PassiveSlots, new Color(0.16f, 0.45f, 0.42f), 145f);
 
-        // [이어하기]
+        // [이어하기] — 하단
         GameObject buttonGo = CreateChild("ResumeButton", overlay.transform);
         Image buttonBg = buttonGo.AddComponent<Image>();
         buttonBg.sprite = RuntimeSprites.White;
         buttonBg.color = new Color(0.95f, 0.65f, 0.2f);
         var buttonRect = buttonGo.GetComponent<RectTransform>();
-        buttonRect.sizeDelta = new Vector2(320f, 92f);
-        buttonRect.anchoredPosition = new Vector2(0f, -220f);
+        buttonRect.sizeDelta = new Vector2(340f, 96f);
+        buttonRect.anchoredPosition = new Vector2(0f, -420f);
         buttonGo.AddComponent<Button>().onClick.AddListener(Resume);
-        CreateText(buttonGo.transform, "Label", 38, Vector2.zero, Color.white).text = "이어하기";
+        CreateText(buttonGo.transform, "Label", 40, Vector2.zero, Color.white).text = "이어하기";
 
         overlay.SetActive(false);
     }
 
     private void BuildSlotRow(List<Image> slots, int count, Color frameColor, float startX)
     {
-        const float size = 88f, gap = 8f;
+        const float size = 108f, gap = 10f;
         for (int i = 0; i < count; i++)
         {
             GameObject frame = CreateChild($"Slot{i}", overlay.transform);
@@ -97,7 +98,7 @@ public class PausePanel : UIElement
             frameImage.color = frameColor;
             var frameRect = frame.GetComponent<RectTransform>();
             frameRect.sizeDelta = new Vector2(size, size);
-            frameRect.anchoredPosition = new Vector2(startX + i * (size + gap), 90f);
+            frameRect.anchoredPosition = new Vector2(startX + i * (size + gap), 150f);
 
             GameObject icon = CreateChild("Icon", frame.transform);
             Image iconImage = icon.AddComponent<Image>();

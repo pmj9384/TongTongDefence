@@ -11,8 +11,9 @@ public class BallManager : InGameManager
     public GameManager.GameState CurrentGameState => GameManager.CurrentState;
     public ObjectPoolManager ObjectPool => GameManager.ObjectPool;
 
-    // 다음 발사 볼의 타입 — 보유 액티브 로테이션은 SkillManager 소관
-    public BallLoadout GetNextLoadout() => GameManager.SkillManager.GetNextLoadout();
+    // 발사/회수 창구 — 볼 인벤토리(대기열)는 SkillManager 소관
+    public bool TryGetNextLoadout(out BallLoadout loadout) => GameManager.SkillManager.TryGetNextLoadout(out loadout);
+    public void ReturnBall(SkillId? skill) => GameManager.SkillManager.ReturnBall(skill);
 
     public void NotifyBallHitMonster(Ball ball, Collider2D monster, Vector2 hitNormal)
         => OnBallHitMonster?.Invoke(ball, monster, hitNormal);

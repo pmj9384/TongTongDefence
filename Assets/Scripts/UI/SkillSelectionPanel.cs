@@ -33,6 +33,15 @@ public class SkillSelectionPanel : MonoBehaviour
             buttons[i].gameObject.SetActive(active);
             if (!active) continue;
 
+            if (cards[i] == SkillId.NormalBall)   // 채움 카드 — 테이블에 없음, 고정 표기
+            {
+                icons[i].sprite = Resources.Load<Sprite>("Sprites/Balls/Ball_Nomal_Ball");
+                names[i].text = "노멀 볼";
+                levels[i].text = "볼 +1";
+                descriptions[i].text = "기본 볼이 1개 늘어나 연달아 발사됩니다.";
+                continue;
+            }
+
             SkillDef def = owned.Table[cards[i]];
             int showLevel = owned.GetLevel(cards[i]) + 1;   // 미보유=Lv1, 보유=현재+1
             string kindTag = def.kind == SkillKind.ActiveBall ? "액티브" : "패시브";

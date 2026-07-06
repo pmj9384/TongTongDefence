@@ -12,6 +12,10 @@ public enum SkillId
     AmethystDagger,
     EmeraldDagger,
     LastMatch,
+
+    // 채움 전용 특수 카드 — CSV/테이블에 없음. 드래프트 후보가 3장 미만일 때 빈 자리를 채우고,
+    // 획득 시 노멀볼 연사 수 +1 (만렙 없음 → 드래프트가 절대 비지 않는다 = 선택 잠금 버그의 구조적 해결)
+    NormalBall,
 }
 
 public enum SkillKind
