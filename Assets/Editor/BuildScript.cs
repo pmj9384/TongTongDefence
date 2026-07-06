@@ -16,9 +16,10 @@ public static class BuildScript
         PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, "com.pmj.tongtongdefence");
         PlayerSettings.productName = "TongTongDefence";   // 런처 표시 이름 (유저 지정: 영문)
         PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait;   // 세로 전용 게임
-        // Mono + ARMv7: NDK(IL2CPP) 미설치 환경에서도 확실히 빌드되는 조합 — 과제 실행 검증엔 충분
-        PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, ScriptingImplementation.Mono2x);
-        PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARMv7;
+        // IL2CPP + ARM64/ARMv7 (제출 사양): Mono/ARMv7만으론 64비트 전용 최신 폰에서 설치 거부됨
+        // (실사례: 타인 폰 zip 전달 설치 실패 — 2026-07-06). NDK 필요, 빌드 시간 증가 감수
+        PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
+        PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64 | AndroidArchitecture.ARMv7;
 
         Directory.CreateDirectory("Builds");
         var options = new BuildPlayerOptions
