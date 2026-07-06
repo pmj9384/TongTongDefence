@@ -8,13 +8,13 @@ public class FieldManager : InGameManager
     public float BottomWall { get; private set; }
 
     [SerializeField] private SpriteRenderer backgroundSprite;
-    // 필드 = 디자인 결정값 (화면 뷰포트 비율): 중앙 정렬 폭 90%, 아래 18% 슈터 밴드, 위 20% UI 밴드.
-    // 그림 격자선과의 픽셀 정렬은 공식 폐기 — 선은 흐릿한 장식이고(게임 중 인지 불가),
-    // 칸의 시각화는 블록 시스템(몬스터 발밑 블록)이 담당한다. 계측 노선(boardPixelRect)은
-    // 오차·재측정 루프를 낳아 폐기함. 로직이 기준, 비주얼이 따라온다.
-    // 값은 Scene 뷰의 격자 Gizmo를 보며 눈으로 튜닝 (2026-07-04, 유저 확정).
-    // 오른쪽 여백(0.07)이 왼쪽(0.13)보다 좁은 비대칭 — 그림의 판이 화면 중앙에서 살짝 오른쪽이라 의도된 값.
-    [SerializeField] private Rect fieldViewportRect = new Rect(0.13f, 0.218f, 0.80f, 0.585f);
+    // 필드 = "배경 그림 bounds 안의 비율" (2026-07-07 전환) — 기준을 그림 하나로 통일.
+    // 이전엔 화면 뷰포트 %였는데, 배경(그림)과 필드(화면)의 기준이 달라 화면비가 바뀌면 어긋났다.
+    // 배경이 어디로 가든/어떻게 늘어나든 필드가 따라가므로 어긋남이 구조적으로 불가능.
+    // 값은 배경을 9:16 화면에 꽉 채우던 기존 눈튜닝 %를 그대로 승계 (그때 화면 % == 그림 %).
+    // 오른쪽 여백이 왼쪽보다 좁은 비대칭 — 그림의 판이 중앙에서 살짝 오른쪽이라 의도된 값.
+    [UnityEngine.Serialization.FormerlySerializedAs("fieldViewportRect")]
+    [SerializeField] private Rect fieldRectInBackground = new Rect(0.13f, 0.218f, 0.80f, 0.585f);
 
     // 논리 격자 — 필드를 columns×rows 셀로 나눈다. 모든 시스템이 (행, 열) 주소로 위치를 지목:
     // 스폰 대형, 블록 점유(1×2 등), 레이저볼 "같은 행" 판정의 공통 기반.
@@ -37,14 +37,13 @@ public class FieldManager : InGameManager
         Camera cam = Camera.main;
         float camZ = Mathf.Abs(cam.transform.position.z);
 
-        Vector3 bottomLeft = cam.ViewportToWorldPoint(new Vector3(fieldViewportRect.xMin, fieldViewportRect.yMin, camZ));
-        Vector3 topRight = cam.ViewportToWorldPoint(new Vector3(fieldViewportRect.xMax, fieldViewportRect.yMax, camZ));
-        LeftWall = bottomLeft.x;
-        RightWall = topRight.x;
-        BottomWall = bottomLeft.y;
-        TopWall = topRight.y;
+        FitBackgroundToCamera(cam, camZ);   // 배경을 먼저 펴고, 필드는 그 결과 bounds에서 파생 (그림 = SSOT)
+        Bounds bg = backgroundSprite.bounds;
+        LeftWall = bg.min.x + fieldRectInBackground.xMin * bg.size.x;
+        RightWall = bg.min.x + fieldRectInBackground.xMax * bg.size.x;
+        BottomWall = bg.min.y + fieldRectInBackground.yMin * bg.size.y;
+        TopWall = bg.min.y + fieldRectInBackground.yMax * bg.size.y;
 
-        FitBackgroundToCamera(cam, camZ);
         CreateWallColliders();
     }
 
@@ -110,11 +109,13 @@ public class FieldManager : InGameManager
     // 에디터 전용(빌드 제외), Play 중이 아니어도 보임 (fieldViewportRect에서 즉석 계산)
     private void OnDrawGizmos()
     {
-        Camera cam = Camera.main;
-        if (cam == null || columns <= 0 || rows <= 0) return;
-        float camZ = Mathf.Abs(cam.transform.position.z);
-        Vector3 bl = cam.ViewportToWorldPoint(new Vector3(fieldViewportRect.xMin, fieldViewportRect.yMin, camZ));
-        Vector3 tr = cam.ViewportToWorldPoint(new Vector3(fieldViewportRect.xMax, fieldViewportRect.yMax, camZ));
+        if (backgroundSprite == null || columns <= 0 || rows <= 0) return;
+        // 배경 bounds 기준 — 에디트 모드에서도 "그림 대비" 격자 정렬을 그대로 보여준다
+        Bounds bg = backgroundSprite.bounds;
+        Vector3 bl = new Vector3(bg.min.x + fieldRectInBackground.xMin * bg.size.x,
+                                 bg.min.y + fieldRectInBackground.yMin * bg.size.y, 0f);
+        Vector3 tr = new Vector3(bg.min.x + fieldRectInBackground.xMax * bg.size.x,
+                                 bg.min.y + fieldRectInBackground.yMax * bg.size.y, 0f);
         float cellW = (tr.x - bl.x) / columns;
         float cellH = (tr.y - bl.y) / rows;
 

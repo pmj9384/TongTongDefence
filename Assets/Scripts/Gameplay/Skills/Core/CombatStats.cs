@@ -5,18 +5,20 @@ using System.Collections.Generic;
 // 원작 전투 정보 창 관찰(#57): 노멀 볼 포함 소스별 [누적 / DPS / 최대 대비 비율] 표시.
 public class CombatStats
 {
-    private readonly Dictionary<SkillId?, long> totals = new();   // null 키 = 노멀볼
+    // Dictionary는 null 키 금지 — 노멀볼(source=null)은 내부 -1 키로 변환 (Play 실버그에서 확인)
+    private readonly Dictionary<int, long> totals = new();
 
-    public IReadOnlyDictionary<SkillId?, long> Totals => totals;
+    private static int Key(SkillId? source) => source.HasValue ? (int)source.Value : -1;
 
     public void Add(SkillId? source, int damage)
     {
-        totals.TryGetValue(source, out long current);
-        totals[source] = current + damage;
+        int key = Key(source);
+        totals.TryGetValue(key, out long current);
+        totals[key] = current + damage;
     }
 
     public long TotalOf(SkillId? source)
-        => totals.TryGetValue(source, out long total) ? total : 0;
+        => totals.TryGetValue(Key(source), out long total) ? total : 0;
 
     // 비율 바의 분모 — 가장 많이 넣은 소스의 누적
     public long MaxTotal

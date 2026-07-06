@@ -99,14 +99,16 @@ public static class InGameUIBuilder
             var row = Child(overlay, $"Row{i}", F(y), Vector2.zero, new(900, 90));
             rows[i] = row.gameObject;
 
-            icons[i] = Image(row, "Icon", Color.white, C, new(-380, 8), new(72, 72), sprite: false);
+            icons[i] = Image(row, "Icon", Color.white, C, new(-380, 8), new(80, 80), sprite: false);
             icons[i].preserveAspect = true;
-            levels[i] = Text(row, "Level", "◆x1", 22, C, new(-380, -34), new(120, 28), color: new Color(1f, 0.85f, 0.4f));
-            names[i] = Text(row, "Name", "", 30, C, new(-120, 22), new(360, 40), bold: true);
-            totals[i] = Text(row, "Total", "0", 32, C, new(-120, -14), new(360, 40), bold: true, color: new Color(0.95f, 0.9f, 0.7f));
-            ratios[i] = SliderGauge(row, "Ratio", new Color(0.85f, 0.22f, 0.18f), C, new(-80, -38), new(440, 16));
-            Text(row, "DpsLabel", "DPS", 26, C, new(330, 22), new(140, 34), bold: true, color: new Color(0.9f, 0.88f, 0.8f));
-            dpss[i] = Text(row, "Dps", "0", 30, C, new(330, -14), new(140, 40), bold: true);
+            levels[i] = Text(row, "Level", "◆x1", 26, C, new(-380, -38), new(130, 32), color: new Color(1f, 0.85f, 0.4f));
+            names[i] = Text(row, "Name", "", 34, C, new(-88, 26), new(420, 44), bold: true);   // x=-88: 슬라이더 왼끝 정렬 (유저 눈튜닝)
+            names[i].horizontalAlignment = TMPro.HorizontalAlignmentOptions.Left;   // 원작: 아이콘 옆 좌측 정렬
+            totals[i] = Text(row, "Total", "0", 38, C, new(-88, -14), new(420, 48), bold: true, color: new Color(0.95f, 0.9f, 0.7f));
+            totals[i].horizontalAlignment = TMPro.HorizontalAlignmentOptions.Left;
+            ratios[i] = SliderGauge(row, "Ratio", new Color(0.85f, 0.22f, 0.18f), C, new(-70, -44), new(460, 24));   // 원작 두께
+            Text(row, "DpsLabel", "DPS", 30, C, new(330, 26), new(150, 38), bold: true, color: new Color(0.9f, 0.88f, 0.8f));
+            dpss[i] = Text(row, "Dps", "0", 36, C, new(330, -14), new(150, 44), bold: true);
         }
 
         Assign(panel, ("overlay", overlay.gameObject), ("closeButton", closeBtn),
@@ -304,7 +306,7 @@ public static class InGameUIBuilder
 
         var fillArea = Child(root, "Fill Area", C, Vector2.zero, Vector2.zero);
         Stretch(fillArea); fillArea.offsetMin = new(2, 2); fillArea.offsetMax = new(-2, -2);
-        var fill = Image(fillArea, "Fill", fillColor, C, Vector2.zero, new(10, 0));
+        var fill = Image(fillArea, "Fill", fillColor, C, Vector2.zero, Vector2.zero);   // 폭 여분 0 — 값 0이면 완전히 빈 바
         fill.rectTransform.anchorMin = new(0, 0); fill.rectTransform.anchorMax = new(0, 1);
 
         slider.fillRect = fill.rectTransform;

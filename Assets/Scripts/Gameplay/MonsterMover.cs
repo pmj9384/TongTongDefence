@@ -12,8 +12,10 @@ public class MonsterMover : MonoBehaviour
 
     private const float ChargeArriveRadius = 0.3f;
 
-    // 전방(아래) 몬스터 감지 — 냉동 등으로 앞이 느려지면 파고들지 않고 줄서서 대기 (실기기 발견 버그)
-    private const float FrontGap = 0.12f;
+    // 전방(아래) 몬스터 감지 — 냉동 등으로 앞이 느려지면 파고들지 않고 줄서서 대기 (실기기 발견 버그).
+    // 반드시 "정상 격자 틈"(한 칸 0.49 - 블록 0.43 ≈ 0.06)보다 작아야 한다 — 크면 정상 하강까지
+    // 막혀서 뒷줄이 못 따라옴 (0.12였을 때 실버그: 낀 몬스터가 찔끔찔끔 처짐)
+    private const float FrontGap = 0.03f;
 
     private Rigidbody2D rb;
     private Collider2D body;
@@ -72,7 +74,7 @@ public class MonsterMover : MonoBehaviour
     // 감속된 앞 몬스터를 뒤가 파고들던 문제를 "이동 전 양보"로 해결 [가정: 원작도 겹치지 않고 대기]
     private bool IsBlockedByFrontMonster()
     {
-        Vector2 feet = new Vector2(rb.position.x, body.bounds.min.y - 0.02f);
+        Vector2 feet = new Vector2(rb.position.x, body.bounds.min.y - 0.01f);
         return Physics2D.Raycast(feet, Vector2.down, FrontGap, monsterMask).collider != null;
     }
 
