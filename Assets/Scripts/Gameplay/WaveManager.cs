@@ -2,100 +2,81 @@ using System;
 using System.Collections;
 using UnityEngine;
 
-// 웨이브 진행만 담당: 시작 → 전멸 시 다음 웨이브 스폰 → 마지막 클리어 시 GameClear.
-// 처치 수 카운팅/3택지 발동은 SkillManager(PlayerLevel)의 몫 — 여기서 하지 않는다.
+// 행 컨베이어 (원작 확정 관찰 2026-07-07): 시작 5행 일괄 → "앞 행이 한 칸 내려올 때마다" 다음 행 스폰.
+// 행 간격을 시간이 아니라 거리(한 칸)로 정의 — 줄들이 격자 간격을 유지하고, 세로 1×2의 위 칸 점유가 정합된다.
+// 빈 행도 패턴의 일부(그룹 간격). 클리어 = 행 소진 + 필드 전멸. 전멸해도 다음 행은 제 박자에 온다 [가정].
 public class WaveManager : InGameManager
 {
     public event Action OnWaveAllClear;
 
-    // 결과 화면 진행도(처치 비율)의 분모 — 화면 노출 없음, 계산용 내부 값 (원작도 %만 표시)
-    public int TotalMonsterCount
-    {
-        get
-        {
-            int sum = 0;
-            foreach (WaveData wave in waves) sum += wave.monsterCount;
-            return sum;
-        }
-    }
+    // 진행도(처치 비율)의 분모 — 패턴의 총 유닛 수 (멀티셀도 1유닛)
+    public int TotalMonsterCount => pattern.TotalUnits;
 
-    // 비워두면 Initialize에서 공식으로 자동 생성. Inspector에 넣으면 그게 우선
-    [SerializeField] private WaveData[] waves;
-    [SerializeField] private float nextWaveDelay = 2.5f;   // 전멸 → 다음 웨이브 텀 (유저 확정 — 볼 회수 시간 확보 + 원작 텀 감각)
+    [SerializeField] private int initialRows = 5;      // 시작 일괄 스폰 행 수 (원작 관찰)
+    [SerializeField] private int baseHp = 30;          // 행 HP = baseHp + 행번호 × hpPerRow [튜닝]
+    [SerializeField] private int hpPerRow = 10;
 
+    private StagePattern pattern;
     private MonsterManager monsterManager;
-    private int currentWave;
+    private int nextRow;
     private bool hasStarted;
 
     public override void Initialize()
     {
         base.Initialize();
-        // 매니저 간 참조는 GameManager 프로퍼티 경유 — MonsterManager가 FieldManager를 읽는 것과 동일 패턴.
-        // (GameManager가 모든 매니저 프로퍼티 할당을 끝낸 뒤 Initialize 루프를 돌므로 순서 안전)
         monsterManager = GameManager.MonsterManager;
 
-        if (waves == null || waves.Length == 0)
-            waves = GenerateDefaultWaves();
+        var csv = Resources.Load<TextAsset>("Tables/StagePattern");
+        pattern = StagePattern.Parse(csv.text, GameManager.FieldManager.Columns);   // 엄격 파서 — 오염 즉시 예외
 
         monsterManager.OnFieldCleared += HandleFieldCleared;
-        GameManager.AddGameStateEnterAction(GameManager.GameState.GamePlay, TryStartFirstWave);
+        GameManager.AddGameStateEnterAction(GameManager.GameState.GamePlay, TryStart);
     }
 
     public override void Clear()
     {
         base.Clear();
-        StopAllCoroutines();   // 지연 스폰 중 씬 정리 대비
+        StopAllCoroutines();
         monsterManager.OnFieldCleared -= HandleFieldCleared;
-        GameManager.RemoveGameStateEnterAction(GameManager.GameState.GamePlay, TryStartFirstWave);
+        GameManager.RemoveGameStateEnterAction(GameManager.GameState.GamePlay, TryStart);
     }
 
-    private void TryStartFirstWave()
+    private void TryStart()
     {
-        if (hasStarted) return;   // SkillSelection 복귀 등 GamePlay 재진입 시 재시작 방지
+        if (hasStarted) return;   // SkillSelection 복귀 등 GamePlay 재진입 대비
         hasStarted = true;
-        StartWave(0);
+
+        // 시작 일괄: 패턴 첫 행이 가장 아래 (먼저 나온 행이 먼저 내려가던 상태)
+        int batch = Mathf.Min(initialRows, pattern.Rows.Count);
+        for (int i = 0; i < batch; i++)
+            monsterManager.SpawnRow(pattern.Rows[i], RowHp(i), gridRowOffset: batch - 1 - i);
+        nextRow = batch;
+
+        StartCoroutine(ConveyorLoop());
     }
 
-    private void StartWave(int waveIndex)
+    private IEnumerator ConveyorLoop()
     {
-        currentWave = waveIndex;
-        monsterManager.Spawn(waves[waveIndex].monsterCount, waves[waveIndex].monsterHp, waveIndex);
+        // "한 칸 내려오는 시간"마다 다음 행 — 스케일 시간이라 정지(선택/퍼즈) 동안 이동과 함께 멈춰 간격 유지
+        float interval = GameManager.FieldManager.CellHeight / monsterManager.MoveSpeed;
+        var wait = new WaitForSeconds(interval);
+
+        while (nextRow < pattern.Rows.Count)
+        {
+            yield return wait;
+            monsterManager.SpawnRow(pattern.Rows[nextRow], RowHp(nextRow));
+            nextRow++;
+        }
     }
 
+    private int RowHp(int rowIndex) => baseHp + rowIndex * hpPerRow;
+
+    // 필드 전멸 — 행이 남아 있으면 무시 (다음 행이 제 박자에 옴), 소진됐으면 클리어
     private void HandleFieldCleared()
     {
-        if (currentWave >= waves.Length - 1)
-        {
-            OnWaveAllClear?.Invoke();
-            GameManager.SetGameState(GameManager.GameState.GameClear);
-        }
-        else
-        {
-            // 즉시 스폰 금지 — 사망 처리(레이저 행/폭발 연쇄) "도중에" 같은 스택에서 새 웨이브가 스폰되면
-            // 진행 중인 캐스케이드가 새 몬스터를 즉시 타격해 무한 킬 체인이 됨 (실버그).
-            // 딜레이는 timeScale을 타므로 스킬 선택 중이면 선택이 끝난 뒤 스폰된다.
-            StartCoroutine(StartWaveDelayed(currentWave + 1));
-        }
-    }
+        if (nextRow < pattern.Rows.Count) return;
 
-    private IEnumerator StartWaveDelayed(int waveIndex)
-    {
-        yield return new WaitForSeconds(nextWaveDelay);
-        StartWave(waveIndex);
-    }
-
-    // 결정적 공식 — 매판 동일 구성 (원작 관찰: 정해진 웨이브). Random 사용 금지
-    private WaveData[] GenerateDefaultWaves()
-    {
-        var result = new WaveData[20];
-        for (int i = 0; i < result.Length; i++)
-        {
-            result[i] = new WaveData
-            {
-                monsterCount = 5 + i,
-                monsterHp = 30 + i * 10,   // 상향(2026-07-06): 레이저+성냥 연쇄가 웨이브를 즉살하지 않게 [튜닝]
-            };
-        }
-        return result;
+        OnWaveAllClear?.Invoke();
+        GameManager.SetGameState(GameManager.GameState.GameClear);
     }
 }

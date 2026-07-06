@@ -51,20 +51,31 @@ public class MonsterManager : InGameManager
         ClearAllMonsters();
     }
 
-    // 웨이브 전원 동시 스폰 (원작 관찰: 한 번에 등장, 매판 동일 배치 — 결정적, Random 금지)
-    public void Spawn(int monsterCount, int maxHp, int waveIndex)
-    {
-        for (int i = 0; i < monsterCount; i++)
-        {
-            int row = topSpawnRowOffset + i / fieldManager.Columns;   // 원작: 첫 줄 위 완충 행
-            int col = i % fieldManager.Columns;
-            MonsterTypeData type = types[(waveIndex + i) % types.Length];
+    // 컨베이어 하강 속도 — WaveManager가 행 간격(한 칸 시간)을 이 값으로 계산
+    public float MoveSpeed => moveSpeed;
+    public bool FieldIsEmpty => field.IsEmpty;
 
-            Monster monster = spawner.Spawn(fieldManager.CellToWorld(row, col),
-                                            Mathf.RoundToInt(maxHp * type.hpMultiplier));
-            // 블록 스프라이트가 1월드유닛으로 임포트돼 있어 스케일 = 셀 폭이면 블록이 칸에 꽉 참
+    // 행 단위 스폰 (행 컨베이어 — 원작 확정 관찰 2026-07-07). 매판 동일 패턴, Random 금지.
+    // gridRowOffset: 스폰 기준 행에서 아래로 몇 칸 (시작 5행 일괄 배치용 — 스트림 중엔 0)
+    public void SpawnRow(RowCell[] rowCells, int baseHp, int gridRowOffset = 0)
+    {
+        int row = topSpawnRowOffset + gridRowOffset;   // 원작: 첫 줄 위 완충 행
+        for (int col = 0; col < rowCells.Length; col++)
+        {
+            if (!rowCells[col].IsUnit) continue;
+            MonsterTypeData type = TypeFor(rowCells[col].code);
+
+            // 멀티셀: 앵커 칸 기준 점유 영역의 "중심" — 사슴(1×2)은 위로 반 칸, 돌벌레(2×1)는 오른쪽으로 반 칸
+            Vector2 pos = fieldManager.CellToWorld(row, col);
+            pos += new Vector2(fieldManager.CellWidth * (type.width - 1) * 0.5f,
+                               fieldManager.CellHeight * (type.height - 1) * 0.5f);
+
+            Monster monster = spawner.Spawn(pos, Mathf.RoundToInt(baseHp * type.hpMultiplier));
+            // 블록 스프라이트가 점유 크기 그대로 제작됨(Block_1x1/1x2/2x1, 1칸=1WU) — 균등 스케일 유지
             monster.transform.localScale = Vector3.one * fieldManager.CellWidth;
             monster.GetComponent<MonsterVisual>().Apply(type);
+            // 콜라이더는 블록 스프라이트 크기(0.96/칸)에 맞춤 — 기존 1×1 판정과 동일 기준
+            monster.GetComponent<BoxCollider2D>().size = new Vector2(type.width * 0.96f, type.height * 0.96f);
 
             MonsterMover mover = monster.GetComponent<MonsterMover>();
             mover.Initialize(moveSpeed, failY);
@@ -73,6 +84,21 @@ public class MonsterManager : InGameManager
             monster.OnDied += HandleMonsterDied;
             monster.OnDamaged += HandleMonsterDamaged;
         }
+    }
+
+    // 패턴 코드 → 타입: 숫자 코드는 배열 인덱스, 멀티셀 앵커는 이름 검색 (배열 순서 계약 회피)
+    private MonsterTypeData TypeFor(int code)
+    {
+        if (code == RowCell.DeerAnchor) return FindType("ForestDeer");
+        if (code == RowCell.StoneBugAnchor) return FindType("StoneBug");
+        return types[code % types.Length];
+    }
+
+    private MonsterTypeData FindType(string name)
+    {
+        foreach (MonsterTypeData t in types)
+            if (t.typeName == name) return t;
+        throw new System.InvalidOperationException($"types에 '{name}' 없음 — Inspector 확인");
     }
 
     // 레이저볼 "같은 행" 쿼리 — 기준 Y에서 반 칸 이내의 활성 몬스터 (연속 하강이라 행 인덱스보다 Y밴드가 정확)
