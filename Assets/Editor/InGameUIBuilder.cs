@@ -188,7 +188,20 @@ public static class InGameUIBuilder
         Debug.Log("[InGameUIBuilder] 완료 — 씬 저장(Cmd+S)하면 확정됩니다");
     }
 
-    // ── HUD (TopBar 안) ──────────────────────────────────────────
+    // HUD만 재조립 (다른 패널의 눈튜닝 보존용 별도 메뉴)
+    [MenuItem("Tools/Build HUD Only (게이지 Slider 통일)")]
+    public static void BuildHudOnly()
+    {
+        font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Font/Kostar SDF 2.asset");
+        var topBar = GameObject.Find("TopBar")?.GetComponent<RectTransform>();
+        var hud = Object.FindFirstObjectByType<InGameHud>(FindObjectsInactive.Include);
+        if (topBar == null || hud == null || font == null) { Debug.LogError("TopBar/InGameHud/폰트 확인"); return; }
+        BuildHud(hud, topBar);
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        Debug.Log("[InGameUIBuilder] HUD 재조립 완료 (Slider 게이지) — 씬 저장하세요");
+    }
+
+    // ── HUD (TopBar 안) — 게이지는 전부 UGUI Slider (플레이어 HP와 방식 통일) ──
     private static void BuildHud(InGameHud hud, RectTransform topBar)
     {
         Clear(hud.transform);
@@ -198,23 +211,43 @@ public static class InGameUIBuilder
         Text(hud.transform, "StageName", "1. 깊은 숲", 34, new(0.5f, 1f), new(0, -28), new(500, 44), bold: true);
 
         Image(hud.transform, "ProgressBorder", new Color(0.85f, 0.8f, 0.7f, 0.9f), new(0.5f, 1f), new(0, -66), new(408, 30));
-        var track = Image(hud.transform, "ProgressTrack", new Color(0.08f, 0.08f, 0.08f, 0.95f), new(0.5f, 1f), new(0, -66), new(400, 22));
-        var pFill = Fill(track.transform, new Color(0.85f, 0.22f, 0.18f));
+        var pSlider = SliderGauge(hud.transform, "ProgressSlider", new Color(0.85f, 0.22f, 0.18f),
+                                  new(0.5f, 1f), new(0, -66), new(400, 22));
         var pText = Text(hud.transform, "ProgressText", "0%", 20, new(0.5f, 1f), new(0, -66), new(400, 26), bold: true);
 
-        var lTrack = Image(hud.transform, "LevelTrack", new Color(0.1f, 0.09f, 0.07f, 0.9f), new(0.5f, 1f), new(0, -111), new(400, 22));
-        var lRect = lTrack.rectTransform;
-        lRect.anchorMin = new(0, 1); lRect.anchorMax = new(1, 1);
-        lRect.offsetMin = new(40, -122); lRect.offsetMax = new(-150, -100);
-        var lFill = Fill(lTrack.transform, new Color(0.95f, 0.6f, 0.15f));
-        var badge = Image(hud.transform, "LevelBadge", new Color(0.95f, 0.6f, 0.15f), new(1, 1), new(-128, -111), new(26, 26));
+        // 레벨 게이지: 중앙 고정폭 + 굵게 + 우측 끝 배지 (원작 #35 — 스트레치 앵커 폐기: 화면 폭 따라 길어지던 문제)
+        var lSlider = SliderGauge(hud.transform, "LevelSlider", new Color(0.95f, 0.6f, 0.15f),
+                                  new(0.5f, 1f), new(-35, -117), new(560, 34));
+        var badge = Image(hud.transform, "LevelBadge", new Color(0.95f, 0.6f, 0.15f), new(0.5f, 1f), new(265, -117), new(34, 34));
         badge.rectTransform.localRotation = Quaternion.Euler(0, 0, 45);
-        var lText = Text(hud.transform, "LevelText", "Lv.1", 26, new(1, 1), new(-70, -111), new(100, 40), bold: true, color: new Color(1f, 0.9f, 0.6f));
+        var lText = Text(hud.transform, "LevelText", "Lv.1", 28, new(0.5f, 1f), new(330, -117), new(110, 40), bold: true, color: new Color(1f, 0.9f, 0.6f));
 
-        var pauseBtn = ButtonBox(hud.transform, "PauseButton", "II", 28, new Color(0.15f, 0.16f, 0.2f, 0.9f), new(1, 1), new(-40, -36), new(58, 58));
+        // 일시정지 버튼 확대 (유저 튜닝)
+        var pauseBtn = ButtonBox(hud.transform, "PauseButton", "II", 38, new Color(0.15f, 0.16f, 0.2f, 0.9f), new(1, 1), new(-52, -48), new(84, 84));
 
-        Assign(hud, ("progressFill", pFill), ("progressText", pText), ("levelFill", lFill),
+        Assign(hud, ("progressSlider", pSlider), ("progressText", pText), ("levelSlider", lSlider),
                     ("levelText", lText), ("pauseButton", pauseBtn));
+    }
+
+    // 핸들 없는 게이지 Slider — HP Slider(BuildHpSlider)와 동일 구조
+    private static Slider SliderGauge(Transform parent, string name, Color fillColor, Vector2 anchor, Vector2 pos, Vector2 size)
+    {
+        var root = Child(parent, name, anchor, pos, size);
+        var slider = root.gameObject.AddComponent<Slider>();
+        var bg = Image(root, "Background", new Color(0.08f, 0.08f, 0.08f, 0.95f), C, Vector2.zero, Vector2.zero);
+        Stretch(bg.rectTransform);
+
+        var fillArea = Child(root, "Fill Area", C, Vector2.zero, Vector2.zero);
+        Stretch(fillArea); fillArea.offsetMin = new(2, 2); fillArea.offsetMax = new(-2, -2);
+        var fill = Image(fillArea, "Fill", fillColor, C, Vector2.zero, new(10, 0));
+        fill.rectTransform.anchorMin = new(0, 0); fill.rectTransform.anchorMax = new(0, 1);
+
+        slider.fillRect = fill.rectTransform;
+        slider.direction = Slider.Direction.LeftToRight;
+        slider.interactable = false;
+        slider.transition = Selectable.Transition.None;
+        slider.minValue = 0; slider.maxValue = 1; slider.value = 0;
+        return slider;
     }
 
     // ── 일시정지 (원작 #36 비율) ─────────────────────────────────
@@ -367,17 +400,6 @@ public static class InGameUIBuilder
             img.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
             img.type = UnityEngine.UI.Image.Type.Sliced;
         }
-        return img;
-    }
-
-    private static Image Fill(Transform track, Color color)
-    {
-        var img = Image(track, "Fill", color, C, Vector2.zero, new(-4, -4));
-        Stretch(img.rectTransform);
-        img.rectTransform.offsetMin = new(2, 2); img.rectTransform.offsetMax = new(-2, -2);
-        img.type = UnityEngine.UI.Image.Type.Filled;
-        img.fillMethod = UnityEngine.UI.Image.FillMethod.Horizontal;
-        img.fillAmount = 0f;
         return img;
     }
 

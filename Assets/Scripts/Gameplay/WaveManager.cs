@@ -21,7 +21,7 @@ public class WaveManager : InGameManager
 
     // 비워두면 Initialize에서 공식으로 자동 생성. Inspector에 넣으면 그게 우선
     [SerializeField] private WaveData[] waves;
-    [SerializeField] private float nextWaveDelay = 0.8f;   // 전멸 → 다음 웨이브 텀 (원작 재현 + 캐스케이드 분리)
+    [SerializeField] private float nextWaveDelay = 2.5f;   // 전멸 → 다음 웨이브 텀 (유저 확정 — 볼 회수 시간 확보 + 원작 텀 감각)
 
     private MonsterManager monsterManager;
     private int currentWave;

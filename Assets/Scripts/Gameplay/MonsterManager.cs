@@ -15,6 +15,8 @@ public class MonsterManager : InGameManager
     [SerializeField] private int attackDamage = 10;      // 돌진 충돌 데미지 [가정 — 수치 재관찰]
     [SerializeField] private float chargeSpeed = 4f;     // 도달 후 플레이어 돌진 속도
     [SerializeField] private float chargeDelay = 3f;     // 도달 후 돌진까지 대기 (원작 관찰: 약 3초, 이때 처치 가능)
+    [SerializeField] private int topSpawnRowOffset = 1;  // 스폰 시작 행 — 원작은 판 상단 한 행 아래부터 (완충 행:
+                                                         // 웨이브 스폰이 상단의 볼과 겹쳐 벽 밖으로 밀어내던 실기기 버그의 원작식 해법)
 
     private MonsterSpawner spawner;
     private MonsterField field;
@@ -53,7 +55,7 @@ public class MonsterManager : InGameManager
     {
         for (int i = 0; i < monsterCount; i++)
         {
-            int row = i / fieldManager.Columns;
+            int row = topSpawnRowOffset + i / fieldManager.Columns;   // 원작: 첫 줄 위 완충 행
             int col = i % fieldManager.Columns;
             MonsterTypeData type = types[(waveIndex + i) % types.Length];
 

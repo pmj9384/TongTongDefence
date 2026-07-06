@@ -187,7 +187,19 @@ public class SkillManager : InGameManager
             lastMatch.Explode(monster.transform.position, playerSkills.Table[SkillId.LastMatch].GetLevel(matchLevel));
 
         pendingDrafts += playerLevel.AddKill();
-        // 이미 선택 중이면 큐에만 쌓고, 선택이 끝날 때 이어서 연다
+        // 이미 선택 중이면 큐에만 쌓고, 선택이 끝날 때 이어서 연다.
+        // 즉시 열지 않고 잠깐 지연 — 레벨 게이지가 "꽉 차는" 연출을 보여준 뒤 창이 뜬다 (원작 시퀀스)
+        if (pendingDrafts > 0 && GameManager.CurrentState == GameManager.GameState.GamePlay && openDelay == null)
+            openDelay = StartCoroutine(OpenSelectionAfterGaugeFill());
+    }
+
+    private Coroutine openDelay;
+    private const float SelectionOpenDelay = 0.6f;   // 게이지 채움 연출 시간 (InGameHud.gaugeFillSpeed와 감각 맞춤)
+
+    private System.Collections.IEnumerator OpenSelectionAfterGaugeFill()
+    {
+        yield return new WaitForSeconds(SelectionOpenDelay);   // 스케일 시간 — 이 동안 게임은 계속 돈다 (원작)
+        openDelay = null;
         if (pendingDrafts > 0 && GameManager.CurrentState == GameManager.GameState.GamePlay)
             OpenSelection();
     }
