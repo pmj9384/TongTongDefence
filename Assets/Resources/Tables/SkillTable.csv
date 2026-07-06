@@ -5,9 +5,9 @@ FireBall,ActiveBall,3,27,5,5,12,파이어 볼,타격한 적을 불태워 지속 
 IceBall,ActiveBall,1,25,0.3,5,0.1,아이스볼,확률로 적을 얼려 감속 + 받는 피해 증가,Sprites/Balls/BallSkills/Ball_Ice_Ball
 IceBall,ActiveBall,2,37,0.35,6,0.15,아이스볼,확률로 적을 얼려 감속 + 받는 피해 증가,Sprites/Balls/BallSkills/Ball_Ice_Ball
 IceBall,ActiveBall,3,50,0.4,7,0.2,아이스볼,확률로 적을 얼려 감속 + 받는 피해 증가,Sprites/Balls/BallSkills/Ball_Ice_Ball
-LaserBall,ActiveBall,1,11,7,0,0,레이저볼,같은 줄 전체에 레이저 피해,Sprites/Balls/BallSkills/Ball_Laser_Ball
-LaserBall,ActiveBall,2,15,11,0,0,레이저볼,같은 줄 전체에 레이저 피해,Sprites/Balls/BallSkills/Ball_Laser_Ball
-LaserBall,ActiveBall,3,19,15,0,0,레이저볼,같은 줄 전체에 레이저 피해,Sprites/Balls/BallSkills/Ball_Laser_Ball
+LaserBall,ActiveBall,1,11,7,0,0,레이저 볼(가로),같은 줄 전체에 레이저 피해,Sprites/Balls/BallSkills/Ball_Laser_Ball
+LaserBall,ActiveBall,2,15,11,0,0,레이저 볼(가로),같은 줄 전체에 레이저 피해,Sprites/Balls/BallSkills/Ball_Laser_Ball
+LaserBall,ActiveBall,3,19,15,0,0,레이저 볼(가로),같은 줄 전체에 레이저 피해,Sprites/Balls/BallSkills/Ball_Laser_Ball
 GhostBall,ActiveBall,1,14,0,0,0,고스트 볼,적을 관통하며 경로의 모든 적 타격,Sprites/Balls/BallSkills/Ball_Ghost_Ball
 GhostBall,ActiveBall,2,21,0,0,0,고스트 볼,적을 관통하며 경로의 모든 적 타격,Sprites/Balls/BallSkills/Ball_Ghost_Ball
 GhostBall,ActiveBall,3,28,0,0,0,고스트 볼,적을 관통하며 경로의 모든 적 타격,Sprites/Balls/BallSkills/Ball_Ghost_Ball

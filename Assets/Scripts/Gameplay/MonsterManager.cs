@@ -6,6 +6,7 @@ public class MonsterManager : InGameManager
 {
     public event Action<Monster> OnMonsterKilled;   // 처치된 몬스터 전달 (레벨 카운트·치명타 1회 소모 해제·성냥 폭발 위치)
     public event Action<Monster> OnMonsterDespawned; // 처치가 아닌 소멸(도달 돌진) — 몬스터 단위 외부 기록 정리용 (단검 등)
+    public event Action<SkillId?, int> OnDamageDealt; // (소스, 데미지) — 전투 정보 집계용 재방송 (StatsManager 구독)
     public event Action OnFieldCleared;
 
     [SerializeField] private GameObject monsterPrefab;
@@ -132,9 +133,10 @@ public class MonsterManager : InGameManager
 
     // 데미지 플로터 — 모든 데미지 소스(볼/화상/레이저/파편/폭발)가 Monster 이벤트로 모이므로 여기서 일괄 표시.
     // 위치 = 몬스터 중앙 (원작 관찰 — 겹쳐도 그대로, 유저 확정)
-    private void HandleMonsterDamaged(Monster monster, int damage, bool isCritical)
+    private void HandleMonsterDamaged(Monster monster, int damage, bool isCritical, SkillId? source)
     {
         popupSpawner.Show(monster.transform.position, damage, isCritical);
+        OnDamageDealt?.Invoke(source, damage);
     }
 
     private void ClearAllMonsters()

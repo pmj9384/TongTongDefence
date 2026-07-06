@@ -4,4 +4,5 @@ public enum UIElementEnums
 	PlayerHpSlider,
 	ResultPanel,
 	PausePanel,
+	CombatInfoPanel,
 }

@@ -65,7 +65,7 @@ public class MonsterStatusEffects : MonoBehaviour
         if (burnTickTimer >= 1f && totalDps > 0f)   // 1초마다 "중첩 수 × 중첩당 피해"
         {
             burnTickTimer -= 1f;
-            monster.TakeDamage(Mathf.RoundToInt(totalDps), false);   // 도트는 치명타/증폭 미적용 [가정5]
+            monster.TakeDamage(Mathf.RoundToInt(totalDps), false, SkillId.FireBall);   // 도트는 치명타/증폭 미적용, 집계는 파이어볼 귀속
         }
     }
 

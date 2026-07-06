@@ -59,6 +59,71 @@ public static class InGameUIBuilder
         Debug.Log("[InGameUIBuilder] 점선 조준선 + 조준점 완료 — 씬 저장하세요");
     }
 
+    // 전투 정보 창 조립 (원작 #57) — SafeAreaPanel 아래 패널 생성 + 행 7개 + 참조 자동 할당
+    [MenuItem("Tools/Build CombatInfo Panel")]
+    public static void BuildCombatInfoPanel()
+    {
+        font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Font/Kostar SDF 2.asset");
+        var safeArea = GameObject.Find("SafeAreaPanel")?.GetComponent<RectTransform>();
+        if (safeArea == null || font == null) { Debug.LogError("SafeAreaPanel/폰트 확인"); return; }
+
+        // 패널 루트 (재실행 시 기존 것 제거 후 재조립)
+        var oldPanel = Object.FindFirstObjectByType<CombatInfoPanel>(FindObjectsInactive.Include);
+        if (oldPanel != null) Object.DestroyImmediate(oldPanel.gameObject);
+        var root = Child(safeArea, "CombatInfoPanel", C, Vector2.zero, Vector2.zero);
+        Stretch(root);
+        var panel = root.gameObject.AddComponent<CombatInfoPanel>();
+
+        var overlay = Overlay(root, 0.92f);
+        var closeBtn = overlay.gameObject.AddComponent<Button>();   // 전체 터치 = 닫기
+        closeBtn.targetGraphic = overlay.GetComponent<UnityEngine.UI.Image>();
+        closeBtn.transition = Selectable.Transition.None;
+
+        Text(overlay, "Title", "전투 정보", 56, F(0.90f), Vector2.zero, new(640, 80), color: new Color(1f, 0.85f, 0.5f));
+        Text(overlay, "Stage", "Stage 1  (Normal)", 32, F(0.83f), Vector2.zero, new(640, 50), color: new Color(0.6f, 0.8f, 1f));
+        var pSlider = SliderGauge(overlay, "ProgressSlider", new Color(0.85f, 0.22f, 0.18f), F(0.78f), Vector2.zero, new(420, 20));
+        var pText = Text(overlay, "ProgressText", "0%", 20, F(0.78f), Vector2.zero, new(420, 26), bold: true);
+        Text(overlay, "CloseHint", "터치하여 닫기", 26, F(0.05f), Vector2.zero, new(400, 40), color: new Color(0.6f, 0.6f, 0.6f));
+
+        const int RowCount = 7;
+        var rows = new GameObject[RowCount];
+        var icons = new UnityEngine.UI.Image[RowCount];
+        var levels = new TMP_Text[RowCount];
+        var names = new TMP_Text[RowCount];
+        var totals = new TMP_Text[RowCount];
+        var ratios = new Slider[RowCount];
+        var dpss = new TMP_Text[RowCount];
+        for (int i = 0; i < RowCount; i++)
+        {
+            float y = 0.68f - i * 0.085f;   // 위에서부터 행 배치
+            var row = Child(overlay, $"Row{i}", F(y), Vector2.zero, new(900, 90));
+            rows[i] = row.gameObject;
+
+            icons[i] = Image(row, "Icon", Color.white, C, new(-380, 8), new(72, 72), sprite: false);
+            icons[i].preserveAspect = true;
+            levels[i] = Text(row, "Level", "◆x1", 22, C, new(-380, -34), new(120, 28), color: new Color(1f, 0.85f, 0.4f));
+            names[i] = Text(row, "Name", "", 30, C, new(-120, 22), new(360, 40), bold: true);
+            totals[i] = Text(row, "Total", "0", 32, C, new(-120, -14), new(360, 40), bold: true, color: new Color(0.95f, 0.9f, 0.7f));
+            ratios[i] = SliderGauge(row, "Ratio", new Color(0.85f, 0.22f, 0.18f), C, new(-80, -38), new(440, 16));
+            Text(row, "DpsLabel", "DPS", 26, C, new(330, 22), new(140, 34), bold: true, color: new Color(0.9f, 0.88f, 0.8f));
+            dpss[i] = Text(row, "Dps", "0", 30, C, new(330, -14), new(140, 40), bold: true);
+        }
+
+        Assign(panel, ("overlay", overlay.gameObject), ("closeButton", closeBtn),
+                      ("progressText", pText), ("progressSlider", pSlider));
+        AssignArray(panel, "rows", rows);
+        AssignArray(panel, "icons", icons);
+        AssignArray(panel, "levels", levels);
+        AssignArray(panel, "names", names);
+        AssignArray(panel, "totals", totals);
+        AssignArray(panel, "ratios", ratios);
+        AssignArray(panel, "dpsTexts", dpss);
+        overlay.gameObject.SetActive(false);
+
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        Debug.Log("[InGameUIBuilder] CombatInfoPanel 조립 완료 — Generate UIElement Enum 실행 후 씬 저장");
+    }
+
     // 캐릭터 파츠 조립(조준 연출용) + PlayerHpBar 컴포넌트를 UI 오브젝트로 이사
     [MenuItem("Tools/Build Shooter Parts + Move HpBar")]
     public static void BuildShooterParts()

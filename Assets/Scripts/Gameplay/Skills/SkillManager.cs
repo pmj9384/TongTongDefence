@@ -127,7 +127,7 @@ public class SkillManager : InGameManager
             critMultiplier = 1.5f,  // 기획서: 치명타 데미지율 50%
         };
 
-        monster.TakeDamage(DamageCalculator.Calc(ctx, rng, out bool isCrit), isCrit);
+        monster.TakeDamage(DamageCalculator.Calc(ctx, rng, out bool isCrit), isCrit, ball.ActiveSkill);
         ApplyOnHitEffect(ball, monster, status);
     }
 
