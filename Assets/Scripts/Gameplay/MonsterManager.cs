@@ -6,6 +6,7 @@ public class MonsterManager : InGameManager
 {
     public event Action<Monster> OnMonsterKilled;   // 처치된 몬스터 전달 (레벨 카운트·치명타 1회 소모 해제·성냥 폭발 위치)
     public event Action<Monster> OnMonsterDespawned; // 처치가 아닌 소멸(도달 돌진) — 몬스터 단위 외부 기록 정리용 (단검 등)
+    public event Action<SkillId?, int> OnDamageDealt; // (소스, 데미지) — 전투 정보 집계용 재방송 (StatsManager 구독)
     public event Action OnFieldCleared;
 
     [SerializeField] private GameObject monsterPrefab;
@@ -15,6 +16,8 @@ public class MonsterManager : InGameManager
     [SerializeField] private int attackDamage = 10;      // 돌진 충돌 데미지 [가정 — 수치 재관찰]
     [SerializeField] private float chargeSpeed = 4f;     // 도달 후 플레이어 돌진 속도
     [SerializeField] private float chargeDelay = 3f;     // 도달 후 돌진까지 대기 (원작 관찰: 약 3초, 이때 처치 가능)
+    [SerializeField] private int topSpawnRowOffset = 1;  // 스폰 시작 행 — 원작은 판 상단 한 행 아래부터 (완충 행:
+                                                         // 웨이브 스폰이 상단의 볼과 겹쳐 벽 밖으로 밀어내던 실기기 버그의 원작식 해법)
 
     private MonsterSpawner spawner;
     private MonsterField field;
@@ -48,20 +51,31 @@ public class MonsterManager : InGameManager
         ClearAllMonsters();
     }
 
-    // 웨이브 전원 동시 스폰 (원작 관찰: 한 번에 등장, 매판 동일 배치 — 결정적, Random 금지)
-    public void Spawn(int monsterCount, int maxHp, int waveIndex)
-    {
-        for (int i = 0; i < monsterCount; i++)
-        {
-            int row = i / fieldManager.Columns;
-            int col = i % fieldManager.Columns;
-            MonsterTypeData type = types[(waveIndex + i) % types.Length];
+    // 컨베이어 하강 속도 — WaveManager가 행 간격(한 칸 시간)을 이 값으로 계산
+    public float MoveSpeed => moveSpeed;
+    public bool FieldIsEmpty => field.IsEmpty;
 
-            Monster monster = spawner.Spawn(fieldManager.CellToWorld(row, col),
-                                            Mathf.RoundToInt(maxHp * type.hpMultiplier));
-            // 블록 스프라이트가 1월드유닛으로 임포트돼 있어 스케일 = 셀 폭이면 블록이 칸에 꽉 참
+    // 행 단위 스폰 (행 컨베이어 — 원작 확정 관찰 2026-07-07). 매판 동일 패턴, Random 금지.
+    // gridRowOffset: 스폰 기준 행에서 아래로 몇 칸 (시작 5행 일괄 배치용 — 스트림 중엔 0)
+    public void SpawnRow(RowCell[] rowCells, int baseHp, int gridRowOffset = 0)
+    {
+        int row = topSpawnRowOffset + gridRowOffset;   // 원작: 첫 줄 위 완충 행
+        for (int col = 0; col < rowCells.Length; col++)
+        {
+            if (!rowCells[col].IsUnit) continue;
+            MonsterTypeData type = TypeFor(rowCells[col].code);
+
+            // 멀티셀: 앵커 칸 기준 점유 영역의 "중심" — 사슴(1×2)은 위로 반 칸, 돌벌레(2×1)는 오른쪽으로 반 칸
+            Vector2 pos = fieldManager.CellToWorld(row, col);
+            pos += new Vector2(fieldManager.CellWidth * (type.width - 1) * 0.5f,
+                               fieldManager.CellHeight * (type.height - 1) * 0.5f);
+
+            Monster monster = spawner.Spawn(pos, Mathf.RoundToInt(baseHp * type.hpMultiplier));
+            // 블록 스프라이트가 점유 크기 그대로 제작됨(Block_1x1/1x2/2x1, 1칸=1WU) — 균등 스케일 유지
             monster.transform.localScale = Vector3.one * fieldManager.CellWidth;
             monster.GetComponent<MonsterVisual>().Apply(type);
+            // 콜라이더는 블록 스프라이트 크기(0.96/칸)에 맞춤 — 기존 1×1 판정과 동일 기준
+            monster.GetComponent<BoxCollider2D>().size = new Vector2(type.width * 0.96f, type.height * 0.96f);
 
             MonsterMover mover = monster.GetComponent<MonsterMover>();
             mover.Initialize(moveSpeed, failY);
@@ -70,6 +84,21 @@ public class MonsterManager : InGameManager
             monster.OnDied += HandleMonsterDied;
             monster.OnDamaged += HandleMonsterDamaged;
         }
+    }
+
+    // 패턴 코드 → 타입: 숫자 코드는 배열 인덱스, 멀티셀 앵커는 이름 검색 (배열 순서 계약 회피)
+    private MonsterTypeData TypeFor(int code)
+    {
+        if (code == RowCell.DeerAnchor) return FindType("ForestDeer");
+        if (code == RowCell.StoneBugAnchor) return FindType("StoneBug");
+        return types[code % types.Length];
+    }
+
+    private MonsterTypeData FindType(string name)
+    {
+        foreach (MonsterTypeData t in types)
+            if (t.typeName == name) return t;
+        throw new System.InvalidOperationException($"types에 '{name}' 없음 — Inspector 확인");
     }
 
     // 레이저볼 "같은 행" 쿼리 — 기준 Y에서 반 칸 이내의 활성 몬스터 (연속 하강이라 행 인덱스보다 Y밴드가 정확)
@@ -130,9 +159,10 @@ public class MonsterManager : InGameManager
 
     // 데미지 플로터 — 모든 데미지 소스(볼/화상/레이저/파편/폭발)가 Monster 이벤트로 모이므로 여기서 일괄 표시.
     // 위치 = 몬스터 중앙 (원작 관찰 — 겹쳐도 그대로, 유저 확정)
-    private void HandleMonsterDamaged(Monster monster, int damage, bool isCritical)
+    private void HandleMonsterDamaged(Monster monster, int damage, bool isCritical, SkillId? source)
     {
         popupSpawner.Show(monster.transform.position, damage, isCritical);
+        OnDamageDealt?.Invoke(source, damage);
     }
 
     private void ClearAllMonsters()

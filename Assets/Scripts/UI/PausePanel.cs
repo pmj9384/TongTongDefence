@@ -12,11 +12,19 @@ public class PausePanel : UIElement
     [SerializeField] private List<Image> activeIcons;    // Active 슬롯 4칸의 Icon 이미지들
     [SerializeField] private List<Image> passiveIcons;   // Passive 슬롯 2칸
     [SerializeField] private Button resumeButton;
-    [SerializeField] private Button combatInfoButton;    // TODO(#12): 전투 정보 창 연결
+    [SerializeField] private Button combatInfoButton;    // 전투 정보 창 열기 (#12)
 
     private void Awake()
     {
         resumeButton.onClick.AddListener(Resume);
+        combatInfoButton.onClick.AddListener(OpenCombatInfo);
+    }
+
+    // 전투 정보로 전환 — 상태는 GameStop 유지, 창만 교체 (닫으면 CombatInfoPanel이 퍼즈를 되연다)
+    private void OpenCombatInfo()
+    {
+        Hide();
+        gameUIManager.ShowUIElement(UIElementEnums.CombatInfoPanel);
     }
 
     public override void Show()

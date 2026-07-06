@@ -11,10 +11,14 @@ public class MonsterHpBar : MonoBehaviour
     private const float BarHeight = 0.1f;
     private const float BarY = -0.62f;      // 블록 바로 아래
 
+    private const float DrainSpeed = 2.5f;   // 바가 스르륵 줄어드는 속도(비율/초) — HUD 게이지 보간과 감각 통일
+
     private Monster monster;
     private GameObject barRoot;
     private Transform fill;
     private SpriteRenderer fillRenderer;
+    private float displayRatio = 1f;   // 표시 비율 (보간) — 실제 값은 targetRatio
+    private float targetRatio = 1f;
 
     private void Awake()
     {
@@ -31,6 +35,7 @@ public class MonsterHpBar : MonoBehaviour
     private void OnEnable()
     {
         if (barRoot != null) barRoot.SetActive(false);   // 풀 재사용 — 피격 전엔 숨김
+        displayRatio = targetRatio = 1f;                 // 재사용 초기화 — 첫 피격 때 가득에서 스르륵
     }
 
     private void Refresh(int current, int max)
@@ -38,10 +43,17 @@ public class MonsterHpBar : MonoBehaviour
         if (current <= 0) { barRoot.SetActive(false); return; }
 
         barRoot.SetActive(true);
-        float ratio = (float)current / max;
-        // 왼쪽 기준으로 줄어드는 fill: 스케일 + 중심 보정. 색은 고정 빨강 (원작 관찰)
-        fill.localScale = new Vector3(BarWidth * ratio, BarHeight, 1f);
-        fill.localPosition = new Vector3(-BarWidth * (1f - ratio) * 0.5f, BarY, 0f);
+        targetRatio = (float)current / max;   // 표시는 Update에서 보간
+    }
+
+    // 스르륵 줄어드는 연출 (HUD 게이지와 감각 통일) — 다수 개체라 Slider 대신 SpriteRenderer 유지(성능 관례)
+    private void Update()
+    {
+        if (!barRoot.activeSelf || displayRatio == targetRatio) return;
+
+        displayRatio = Mathf.MoveTowards(displayRatio, targetRatio, DrainSpeed * Time.deltaTime);
+        fill.localScale = new Vector3(BarWidth * displayRatio, BarHeight, 1f);
+        fill.localPosition = new Vector3(-BarWidth * (1f - displayRatio) * 0.5f, BarY, 0f);
     }
 
     private void Build()

@@ -18,6 +18,6 @@ public class LastMatchEffect
     {
         float radius = fieldManager.CellWidth * 1.5f;
         foreach (Collider2D hit in Physics2D.OverlapCircleAll(center, radius, monsterLayerMask))
-            hit.GetComponent<Monster>()?.TakeDamage((int)data.a, false);
+            hit.GetComponent<Monster>()?.TakeDamage((int)data.a, false, SkillId.LastMatch);
     }
 }

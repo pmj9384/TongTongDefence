@@ -4,6 +4,8 @@ using UnityEngine;
 // 죽는 스프라이트가 없어 통짜 회전+틴트로 대체. 재시작 = 씬 리로드라 복원 불필요.
 public class PlayerDeathPose : MonoBehaviour
 {
+    // UIElement 주입(캔버스 트리 한정)이 닿지 않는 월드 오브젝트(Shooter) 소속 —
+    // 씬 일반 오브젝트의 "창구 참조 1개" 관례로 직렬화 참조 유지 (2026-07-06 감사에서 정당 판정)
     [SerializeField] private GameManager gameManager;
     [SerializeField] private Transform visual;   // Shooter의 캐릭터 스프라이트 자식
 

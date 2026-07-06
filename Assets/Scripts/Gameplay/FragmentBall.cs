@@ -45,7 +45,7 @@ public class FragmentBall : MonoBehaviour
         if (armTimer > 0f) return;
         if (other.gameObject.layer != LayerMask.NameToLayer("Monster")) return;
 
-        other.GetComponent<Monster>()?.TakeDamage(damage, false);   // 부가 피해 — 치명타/증폭 미적용 [가정5]
+        other.GetComponent<Monster>()?.TakeDamage(damage, false, SkillId.ClusterBall);   // 부가 피해, 집계는 클러스터 귀속
         OnDespawn?.Invoke(this);
     }
 }

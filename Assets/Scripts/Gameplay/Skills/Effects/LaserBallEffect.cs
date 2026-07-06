@@ -12,6 +12,6 @@ public class LaserBallEffect : IOnHitEffect
     public void Apply(Monster target, SkillLevel data)
     {
         foreach (Monster m in monsterManager.GetMonstersNearRow(target.transform.position.y))
-            m.TakeDamage((int)data.a, false);
+            m.TakeDamage((int)data.a, false, SkillId.LaserBall);
     }
 }

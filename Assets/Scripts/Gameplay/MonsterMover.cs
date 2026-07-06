@@ -12,7 +12,14 @@ public class MonsterMover : MonoBehaviour
 
     private const float ChargeArriveRadius = 0.3f;
 
+    // 전방(아래) 몬스터 감지 — 냉동 등으로 앞이 느려지면 파고들지 않고 줄서서 대기 (실기기 발견 버그).
+    // 반드시 "정상 격자 틈"(한 칸 0.49 - 블록 0.43 ≈ 0.06)보다 작아야 한다 — 크면 정상 하강까지
+    // 막혀서 뒷줄이 못 따라옴 (0.12였을 때 실버그: 낀 몬스터가 찔끔찔끔 처짐)
+    private const float FrontGap = 0.03f;
+
     private Rigidbody2D rb;
+    private Collider2D body;
+    private int monsterMask;
     private float moveSpeed;
     private float failY;
     private bool reachedBottom;
@@ -23,6 +30,8 @@ public class MonsterMover : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        body = GetComponent<Collider2D>();
+        monsterMask = LayerMask.GetMask("Monster");
     }
 
     public void Initialize(float speed, float failY)
@@ -47,8 +56,9 @@ public class MonsterMover : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (charging) { TickCharge(); return; }
+        if (charging) { TickCharge(); return; }   // 돌진은 관통 의도 — 전방 감지 안 함
         if (reachedBottom) return;
+        if (IsBlockedByFrontMonster()) return;    // 앞(아래) 몬스터가 코앞이면 이 프레임 대기
 
         Vector2 nextPosition = rb.position + Vector2.down * (moveSpeed * SpeedMultiplier) * Time.fixedDeltaTime;
         rb.MovePosition(nextPosition);
@@ -58,6 +68,14 @@ public class MonsterMover : MonoBehaviour
             reachedBottom = true;
             OnReachedBottom?.Invoke(this);
         }
+    }
+
+    // 자기 콜라이더 아래변에서 짧은 레이 — 몬스터끼리는 물리 해소가 없어서(kinematic)
+    // 감속된 앞 몬스터를 뒤가 파고들던 문제를 "이동 전 양보"로 해결 [가정: 원작도 겹치지 않고 대기]
+    private bool IsBlockedByFrontMonster()
+    {
+        Vector2 feet = new Vector2(rb.position.x, body.bounds.min.y - 0.01f);
+        return Physics2D.Raycast(feet, Vector2.down, FrontGap, monsterMask).collider != null;
     }
 
     private void TickCharge()
