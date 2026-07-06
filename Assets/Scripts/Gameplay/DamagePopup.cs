@@ -1,9 +1,10 @@
 using System;
+using TMPro;
 using UnityEngine;
 
 // 데미지 플로터 — 자기 연출(떠오르며 페이드)만 담당하는 벙어리 팝업.
-// 생성/풀링/배치는 DamagePopupSpawner 몫 (표준 3층: 팝업 ← 스포너 ← 이벤트 소스)
-[RequireComponent(typeof(TextMesh))]
+// 프리팹(TMP + Kostar) 기반 — 생성/풀링/배치는 DamagePopupSpawner 몫 (표준 3층: 팝업 ← 스포너 ← 이벤트 소스)
+[RequireComponent(typeof(TextMeshPro))]
 public class DamagePopup : MonoBehaviour
 {
     public event Action<DamagePopup> OnFinished;   // 풀 반환 신호
@@ -11,10 +12,10 @@ public class DamagePopup : MonoBehaviour
     private const float Lifetime = 0.6f;
     private const float RiseSpeed = 1.2f;
 
-    private TextMesh text;
+    private TMP_Text text;
     private float timer;
 
-    private void Awake() => text = GetComponent<TextMesh>();
+    private void Awake() => text = GetComponent<TMP_Text>();
 
     public void Show(Vector3 position, int damage, bool isCritical)
     {
@@ -31,9 +32,7 @@ public class DamagePopup : MonoBehaviour
         transform.position += Vector3.up * (RiseSpeed * Time.deltaTime);
 
         timer -= Time.deltaTime;
-        Color c = text.color;
-        c.a = Mathf.Clamp01(timer / Lifetime * 2f);   // 후반부에 빠르게 사라짐
-        text.color = c;
+        text.alpha = Mathf.Clamp01(timer / Lifetime * 2f);   // 후반부에 빠르게 사라짐
 
         if (timer <= 0f)
             OnFinished?.Invoke(this);

@@ -42,13 +42,17 @@ public class ShooterAimer
             lineRenderer.SetPosition(i, points[i]);
     }
 
+    // 조준선이 캐릭터 스프라이트를 뚫고 시작하지 않게 — 원작처럼 캐릭터 바깥에서 시작
+    private const float LineStartOffset = 0.45f;
+
     private void CalculateTrajectory(Vector2 startPos, Vector2 dir)
     {
         points.Clear();
+        Vector2 vel = dir.normalized;
+        startPos += vel * LineStartOffset;
         points.Add(startPos);
 
         Vector2 pos = startPos;
-        Vector2 vel = dir.normalized;
         float remaining = maxDistance;
 
         for (int bounce = 0; bounce < maxBounces && remaining > 0; bounce++)

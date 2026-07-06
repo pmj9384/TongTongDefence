@@ -58,6 +58,7 @@ public class SkillManager : InGameManager
         lastMatch = new LastMatchEffect(GameManager.FieldManager);
 
         GameManager.MonsterManager.OnMonsterKilled += HandleMonsterKilled;
+        GameManager.MonsterManager.OnMonsterDespawned += HandleMonsterDespawned;
         GameManager.BallManager.OnBallHitMonster += HandleBallHit;
     }
 
@@ -65,8 +66,13 @@ public class SkillManager : InGameManager
     {
         base.Clear();
         GameManager.MonsterManager.OnMonsterKilled -= HandleMonsterKilled;
+        GameManager.MonsterManager.OnMonsterDespawned -= HandleMonsterDespawned;
         GameManager.BallManager.OnBallHitMonster -= HandleBallHit;
     }
+
+    // 도달 돌진으로 소멸한 몬스터 — 처치가 아니라서 HandleMonsterKilled를 안 타므로,
+    // 단검 "적당 1회" 기록을 여기서 지워야 풀 재사용 몬스터가 소모 상태로 시작하지 않는다 (검수 v2 #2)
+    private void HandleMonsterDespawned(Monster monster) => critConsumed.Remove(monster);
 
     // ── 발사 로테이션 ─────────────────────────────────────────────
 

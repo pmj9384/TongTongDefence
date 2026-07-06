@@ -48,7 +48,7 @@ public class MonsterStatusEffects : MonoBehaviour
 
     private void TickBurn()
     {
-        if (burnStacks.Count == 0) return;
+        if (burnStacks.Count == 0) { burnTickTimer = 0f; return; }   // 스택 소진 시 리셋 — 다음 화상 첫 틱 조기 방지
 
         float dt = Time.deltaTime;
         float totalDps = 0f;

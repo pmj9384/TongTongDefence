@@ -11,6 +11,109 @@ public static class InGameUIBuilder
 {
     private static TMP_FontAsset font;
 
+    // 캐릭터 파츠 조립(조준 연출용) + PlayerHpBar 컴포넌트를 UI 오브젝트로 이사
+    [MenuItem("Tools/Build Shooter Parts + Move HpBar")]
+    public static void BuildShooterParts()
+    {
+        var shooter = Object.FindFirstObjectByType<Shooter>(FindObjectsInactive.Include);
+        if (shooter == null) { Debug.LogError("Shooter 없음"); return; }
+        Transform visual = shooter.transform.Find("Visual");
+        if (visual == null) { Debug.LogError("Shooter/Visual 없음"); return; }
+
+        // 통짜 스프라이트 제거 → 파츠 3장 (배치값은 시작점 — Inspector에서 눈튜닝)
+        var oldSr = visual.GetComponent<SpriteRenderer>();
+        if (oldSr != null) Object.DestroyImmediate(oldSr);
+        for (int i = visual.childCount - 1; i >= 0; i--) Object.DestroyImmediate(visual.GetChild(i).gameObject);
+
+        Sprite Load(string name) => AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/Resources/Sprites/Characters/{name}.png");
+        SpriteRenderer Part(string name, Sprite sprite, Vector3 pos, int order)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(visual, false);
+            go.transform.localPosition = pos;
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = sprite;
+            sr.sortingOrder = order;
+            return sr;
+        }
+
+        var body = Part("Body", Load("Character_Main_body"), Vector3.zero, 1);
+
+        // 머리: "목 위치"의 빈 피벗 기준 회전 — 자기 중심 회전이면 목에서 분리돼 보임
+        var headPivot = new GameObject("HeadPivot").transform;
+        headPivot.SetParent(visual, false);
+        headPivot.localPosition = new Vector3(0f, 0.35f, 0f);   // 목 위치 [눈튜닝]
+        var head = Part("Head", Load("Character_Main_head"), Vector3.zero, 2);
+        head.transform.SetParent(headPivot, false);
+        head.transform.localPosition = new Vector3(0f, 0.18f, 0f);   // 목→머리 중심 거리 [눈튜닝]
+
+        var pivot = new GameObject("WeaponPivot").transform;
+        pivot.SetParent(visual, false);
+        pivot.localPosition = new Vector3(0.25f, 0.1f, 0f);   // 손잡이 위치 [눈튜닝]
+        var weapon = Part("Weapon", Load("Character_main_weapon"), Vector3.zero, 0);   // 지팡이는 머리·몸 뒤 (원작)
+        weapon.transform.SetParent(pivot, false);
+        weapon.transform.localPosition = new Vector3(0f, 0.3f, 0f);   // 피벗에서 지팡이 몸통까지 [눈튜닝]
+
+        var sv = visual.gameObject.GetComponent<ShooterVisual>();
+        if (sv == null) sv = visual.gameObject.AddComponent<ShooterVisual>();
+        var svSo = new SerializedObject(sv);
+        svSo.FindProperty("body").objectReferenceValue = body;
+        svSo.FindProperty("headPivot").objectReferenceValue = headPivot;
+        svSo.FindProperty("weaponPivot").objectReferenceValue = pivot;
+        svSo.ApplyModifiedProperties();
+
+        var shooterSo = new SerializedObject(shooter);
+        shooterSo.FindProperty("visual").objectReferenceValue = sv;
+        shooterSo.ApplyModifiedProperties();
+
+        // PlayerHpBar 이사: Shooter → PlayerHpSlider (직렬화 값 복사 후 원본 제거)
+        var oldBar = shooter.GetComponent<PlayerHpBar>();
+        var sliderGo = GameObject.Find("PlayerHpSlider");
+        if (oldBar != null && sliderGo != null && sliderGo.GetComponent<PlayerHpBar>() == null)
+        {
+            var newBar = sliderGo.AddComponent<PlayerHpBar>();
+            EditorUtility.CopySerialized(oldBar, newBar);
+            Object.DestroyImmediate(oldBar);
+            Debug.Log("[InGameUIBuilder] PlayerHpBar → PlayerHpSlider 이사 완료");
+        }
+
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        Debug.Log("[InGameUIBuilder] 캐릭터 파츠 조립 완료 — Head/WeaponPivot 위치를 Scene 뷰에서 눈튜닝 후 저장");
+    }
+
+    // 데미지 팝업 프리팹 생성 + 씬 MonsterManager에 연결 (TMP는 손 YAML 금지 규약 → 에디터 API로)
+    [MenuItem("Tools/Build DamagePopup Prefab")]
+    public static void BuildDamagePopupPrefab()
+    {
+        var kostar = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Font/Kostar SDF 2.asset");
+        if (kostar == null) { Debug.LogError("Kostar SDF 2.asset 없음"); return; }
+
+        var go = new GameObject("DamagePopup");
+        var tmp = go.AddComponent<TextMeshPro>();
+        tmp.font = kostar;
+        tmp.fontSize = 5;                                  // 월드 TMP 크기 (셀 대비 눈튜닝 가능)
+        tmp.fontStyle = FontStyles.Bold;
+        tmp.alignment = TextAlignmentOptions.Center;
+        tmp.text = "99";
+        tmp.GetComponent<MeshRenderer>().sortingOrder = 10;   // 몬스터/볼 위
+        go.AddComponent<DamagePopup>();
+
+        if (!AssetDatabase.IsValidFolder("Assets/Prefabs/UI"))
+            AssetDatabase.CreateFolder("Assets/Prefabs", "UI");
+        var prefab = PrefabUtility.SaveAsPrefabAsset(go, "Assets/Prefabs/UI/DamagePopup.prefab");
+        Object.DestroyImmediate(go);
+
+        var monsterManager = Object.FindFirstObjectByType<MonsterManager>(FindObjectsInactive.Include);
+        if (monsterManager != null)
+        {
+            var so = new SerializedObject(monsterManager);
+            so.FindProperty("damagePopupPrefab").objectReferenceValue = prefab;
+            so.ApplyModifiedProperties();
+            EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        }
+        Debug.Log("[InGameUIBuilder] DamagePopup.prefab 생성 + MonsterManager 연결 완료 — 씬 저장하세요");
+    }
+
     [MenuItem("Tools/Build InGame UI (1회 실행)")]
     public static void Build()
     {

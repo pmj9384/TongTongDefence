@@ -7,6 +7,7 @@ public class Shooter : MonoBehaviour
     [SerializeField] private BallManager ballManager;
     [SerializeField] private GameObject ballPrefab;
     [SerializeField] private LineRenderer lineRenderer;
+    [SerializeField] private ShooterVisual visual;   // 조준 연출 (파츠 배치는 씬 — 미연결이어도 동작)
 
     [Header("Shooting")]
     [SerializeField] private float shootCooldown = 1f;
@@ -38,5 +39,6 @@ public class Shooter : MonoBehaviour
         inputHandler.Tick();
         shooter.Tick(Time.deltaTime, direction);
         aimer.Tick(direction);
+        if (visual != null) visual.SetAim(direction);
     }
 }

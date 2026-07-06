@@ -1,9 +1,12 @@
 using UnityEngine;
 
 // 몬스터 체력바 — 첫 피격부터 블록 아래에 표시 (원작 관찰: HP는 숫자가 아니라 바).
-// 바 스프라이트는 코드 생성 흰색 1px(에셋 의존 0), 표시만 담당 — HP 값은 Monster 이벤트 구독.
+// 표시만 담당 — HP 값은 Monster 이벤트 구독. 바 조립은 Awake 1회 코드 생성:
+// 다수 월드 개체라 개별 캔버스 대신 SpriteRenderer가 성능 관례 (에디터-네이티브 전환의 의도적 예외)
 public class MonsterHpBar : MonoBehaviour
 {
+    [SerializeField] private Sprite barSprite;   // white.png (프리팹에서 연결)
+
     private const float BarWidth = 0.9f;    // 루트 로컬 기준 (블록 = 1×1)
     private const float BarHeight = 0.1f;
     private const float BarY = -0.62f;      // 블록 바로 아래
@@ -64,7 +67,7 @@ public class MonsterHpBar : MonoBehaviour
         go.transform.localPosition = localPos;
 
         var sr = go.AddComponent<SpriteRenderer>();
-        sr.sprite = RuntimeSprites.White;
+        sr.sprite = barSprite;
         sr.color = color;
         sr.sortingOrder = sortingOrder;   // 블록(0)/몸체(1) 위
         return go;
