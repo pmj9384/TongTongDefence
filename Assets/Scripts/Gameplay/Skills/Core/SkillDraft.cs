@@ -28,6 +28,12 @@ public static class SkillDraft
             result.Add(candidates[index]);
             candidates.RemoveAt(index);
         }
+
+        // 후보가 모자라면 "노멀 볼 +1" 채움 카드 1장 (원작: 스킬 소진 시 노멀볼 카드가 등장)
+        // — 드래프트가 절대 비지 않으므로 연속 레벨업 체인이 빈 선택지에서 멈출 수 없다
+        if (result.Count < CardCount)
+            result.Add(SkillId.NormalBall);
+
         return result;
     }
 }

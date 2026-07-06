@@ -28,22 +28,24 @@ public class BallShooter
             onRelease: ball => ball.SetActive(false));
     }
 
+    // 인벤토리 모델(원작): 발사 간격마다 "대기 중인 볼"이 있으면 쏜다 — 회수가 발사를 만든다.
+    // 전부 필드에 나가 있으면 발사하지 않고, 볼이 회수돼 대기열에 돌아오는 즉시 다음 간격에 나간다
     public void Tick(float deltaTime, Vector2 direction)
     {
         if (ballManager.CurrentGameState != GameManager.GameState.GamePlay) return;
 
         cooldownTimer -= deltaTime;
-        if (cooldownTimer <= 0f)
+        if (cooldownTimer > 0f) return;
+
+        if (ballManager.TryGetNextLoadout(out BallLoadout loadout))
         {
-            Shoot(direction);
-            cooldownTimer = shootCooldown;
+            Fire(loadout, direction);
+            cooldownTimer = shootCooldown;   // 간격은 발사에만 걸림 — 대기 없을 땐 즉시 재시도 상태 유지
         }
     }
 
-    private void Shoot(Vector2 direction)
+    private void Fire(BallLoadout loadout, Vector2 direction)
     {
-        BallLoadout loadout = ballManager.GetNextLoadout();   // 보유 액티브 로테이션 (없으면 노멀)
-
         GameObject ballObj = ballPool.Get();
         ballObj.transform.position = origin.position;
         ballObj.GetComponent<SpriteRenderer>().sprite = GetSprite(loadout.skill);
@@ -58,8 +60,14 @@ public class BallShooter
     private void HandleBallHitMonster(Ball ball, Collider2D monster, Vector2 hitNormal)
         => ballManager.NotifyBallHitMonster(ball, monster, hitNormal);
 
-    // 볼은 블록에 맞아도 튕기며 계속 날아감(원작) — 회수 경로는 "바닥 반사 → 슈터 귀환" 하나뿐
-    private void HandleBallExitField(Ball ball) => ReleaseBall(ball);
+    // 볼은 블록에 맞아도 튕기며 계속 날아감(원작) — 회수 경로는 "바닥 반사 → 슈터 귀환" 하나뿐.
+    // 회수된 볼은 인벤토리 대기열로 돌아가 먼저 회수된 순으로 재발사된다
+    private void HandleBallExitField(Ball ball)
+    {
+        SkillId? returnedSkill = ball.ActiveSkill;
+        ReleaseBall(ball);
+        ballManager.ReturnBall(returnedSkill);
+    }
 
     private void ReleaseBall(Ball ball)
     {

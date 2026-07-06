@@ -56,7 +56,15 @@ public class Ball : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (!isReturning) return;
+        if (!isReturning)
+        {
+            // 발사볼은 항상 launchSpeed로 날아야 함(충돌마다 재정규화) — 속도가 죽어 있으면
+            // 원인 불문 고장(예: 벽 접촉 중 timeScale 정지 → 반발 없는 겹침 해소로 속도 소멸).
+            // 방향 정보는 이미 소실됐으므로 복원 대신 아래로 떨어뜨려 회수 루프로 탈출 (최후 보루)
+            if (rb.linearVelocity.sqrMagnitude < 0.01f)
+                rb.linearVelocity = Vector2.down * launchSpeed;
+            return;
+        }
 
         // 바닥에 한 번 튕긴 뒤에는 슈터를 향해 유도 비행 → 도착하면 회수(풀 반환은 BallShooter 몫)
         Vector2 toTarget = returnTarget - (Vector2)transform.position;

@@ -17,8 +17,11 @@ public class SkillManager : InGameManager
     private readonly System.Random rng = new();
     private int pendingDrafts;                              // 연속 레벨업 시 3택지를 연달아 띄우기 위한 큐
 
-    private readonly List<SkillId> ballRotation = new();    // 보유 액티브 볼 발사 순환 [가정1]
-    private int rotationIndex;
+    [SerializeField] private int initialNormalBalls = 4;   // 시작 노멀볼 수 [원작 관찰: 4발] — 튜닝 노출
+
+    // 발사 볼 인벤토리 — 보유 볼 각각이 개체 (필드에 나가 있거나 대기). 규칙은 BallInventory(순수 코어) 몫
+    private BallInventory ballInventory;
+    public int NormalBallLevel { get; private set; } = 1;  // 노멀볼 레벨 (전투 정보 ◆xN) — 채움 카드로 개수와 함께 성장
     private readonly HashSet<Monster> critConsumed = new(); // 단검 "적당 1회" 소모 기록
 
     // 스킬 "행동"은 클래스 단위로 분리(SRP) — 여기는 디스패치만
@@ -33,6 +36,10 @@ public class SkillManager : InGameManager
         var csv = Resources.Load<TextAsset>("Tables/SkillTable");
         playerSkills = new PlayerSkills(SkillTableParser.Parse(csv.text));
         playerLevel = new PlayerLevel();
+
+        ballInventory = new BallInventory();
+        for (int i = 0; i < initialNormalBalls; i++)
+            ballInventory.Add(null);   // 시작 구성: 노멀볼 N발
 
         fragmentPool = GameManager.ObjectPool.CreateObjectPool(
             fragmentPrefab,
@@ -63,21 +70,34 @@ public class SkillManager : InGameManager
 
     // ── 발사 로테이션 ─────────────────────────────────────────────
 
-    // 보유 액티브 볼이 있으면 순환 발사, 없으면 노멀 [가정1 — 원작 재관찰로 보정]
-    public BallLoadout GetNextLoadout()
+    // 인벤토리 대기열 앞의 볼을 발사용으로 꺼냄 — 대기 없으면 false (전부 필드에 나가 있음).
+    // 레벨/데미지는 "발사 시점"에 조회 — 비행 중 레벨업이 다음 발사부터 반영된다
+    public bool TryGetNextLoadout(out BallLoadout loadout)
     {
-        if (ballRotation.Count == 0) return BallLoadout.Normal;
-
-        SkillId id = ballRotation[rotationIndex % ballRotation.Count];
-        rotationIndex++;
-        int level = playerSkills.GetLevel(id);
-        return new BallLoadout
+        if (!ballInventory.TryTakeNext(out SkillId? skill))
         {
-            skill = id,
+            loadout = default;
+            return false;
+        }
+
+        if (skill == null)
+        {
+            loadout = BallLoadout.Normal;
+            return true;
+        }
+
+        int level = playerSkills.GetLevel(skill.Value);
+        loadout = new BallLoadout
+        {
+            skill = skill,
             level = level,
-            damage = playerSkills.Table[id].GetLevel(level).ballDamage,
+            damage = playerSkills.Table[skill.Value].GetLevel(level).ballDamage,
         };
+        return true;
     }
+
+    // 회수된 볼을 대기열 뒤로 — 먼저 회수된 순 재발사 (원작 규칙)
+    public void ReturnBall(SkillId? skill) => ballInventory.Return(skill);
 
     // ── 데미지 파이프라인 ─────────────────────────────────────────
 
@@ -169,9 +189,13 @@ public class SkillManager : InGameManager
     private void OpenSelection()
     {
         List<SkillId> cards = SkillDraft.Draw(playerSkills, rng);
-        if (cards.Count == 0)           // 후보 소진 [가정6] — 선택 스킵
+        if (cards.Count == 0)           // 채움 카드 덕에 사실상 불가능 — 방어적 안전망
         {
             pendingDrafts = 0;
+            // 연속 레벨업 체인 "도중" 소진이면 상태가 SkillSelection에 잠긴 채 방치되던 실버그 —
+            // 복귀시켜 줄 사람이 없으므로 여기서 직접 GamePlay로
+            if (GameManager.CurrentState == GameManager.GameState.SkillSelection)
+                GameManager.SetGameState(GameManager.GameState.GamePlay);
             return;
         }
 
@@ -181,10 +205,18 @@ public class SkillManager : InGameManager
 
     private void HandleCardPicked(SkillId picked)
     {
-        bool isNew = !playerSkills.Has(picked);
-        playerSkills.Acquire(picked);
-        if (isNew && playerSkills.Table[picked].kind == SkillKind.ActiveBall)
-            ballRotation.Add(picked);   // 새 액티브 볼은 발사 로테이션에 합류
+        if (picked == SkillId.NormalBall)
+        {
+            NormalBallLevel++;              // 채움 카드 — 노멀볼 레벨과 개수가 함께 성장 (◆xN)
+            ballInventory.Add(null);
+        }
+        else
+        {
+            bool isNew = !playerSkills.Has(picked);
+            playerSkills.Acquire(picked);
+            if (isNew && playerSkills.Table[picked].kind == SkillKind.ActiveBall)
+                ballInventory.Add(picked);  // 새 액티브 볼 = 인벤토리에 볼 1개 추가
+        }
 
         selectionPanel.Hide();
         pendingDrafts--;

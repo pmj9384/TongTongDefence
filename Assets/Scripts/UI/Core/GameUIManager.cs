@@ -22,7 +22,6 @@ public class GameUIManager : InGameManager
         GameManager.AddGameStateExitAction(GameManager.GameState.GameStop, () =>
         {
             HideUIElement(UIElementEnums.PausePanel);
-            HideUIElement(UIElementEnums.SettingsPanel);
         });
 
         // 결과 패널은 성공/실패 공용 — 어느 쪽인지는 패널이 CurrentState로 판별

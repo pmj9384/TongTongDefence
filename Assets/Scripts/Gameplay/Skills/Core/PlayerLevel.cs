@@ -1,10 +1,10 @@
 // 캐릭터 레벨 — 누적 처치로 성장, 레벨업마다 3택지 발동 (기획서 "조건(처치 수) 충족 시"의 구현).
-// 필요 킬 수는 증가 곡선 [가정, 원작 게이지 재관찰로 보정]: N→N+1 레벨업에 3+(N-1)킬 (3, 4, 5...)
+// 필요 킬 수 곡선 (2026-07-06 유저 확정): 5, 10, 15, 20... — 연속 레벨업 폭주 방지 겸 난이도 곡선
 // 순수 C# — 게이지 UI(KillsIntoLevel/KillsToNext)와 발동(AddKill 반환값)이 전부 테스트 가능.
 public class PlayerLevel
 {
-    public const int BaseKillsToLevel = 3;   // 1→2레벨 필요 킬
-    public const int GrowthPerLevel = 1;     // 레벨마다 +1킬
+    public const int BaseKillsToLevel = 5;   // 1→2레벨 필요 킬
+    public const int GrowthPerLevel = 5;     // 레벨마다 +5킬 (5, 10, 15...)
 
     public int Level { get; private set; } = 1;
     public int KillsIntoLevel { get; private set; }
