@@ -93,7 +93,7 @@ public class WaveManager : InGameManager
             result[i] = new WaveData
             {
                 monsterCount = 5 + i,
-                monsterHp = 10 + i * 4,
+                monsterHp = 30 + i * 10,   // 상향(2026-07-06): 레이저+성냥 연쇄가 웨이브를 즉살하지 않게 [튜닝]
             };
         }
         return result;

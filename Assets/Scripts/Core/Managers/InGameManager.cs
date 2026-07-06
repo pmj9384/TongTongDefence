@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class InGameManager : MonoBehaviour, IManager
 {
-    //public이어도 되나?
     protected GameManager GameManager
     {
         get;

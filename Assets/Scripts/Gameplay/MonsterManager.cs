@@ -5,9 +5,11 @@ using UnityEngine;
 public class MonsterManager : InGameManager
 {
     public event Action<Monster> OnMonsterKilled;   // 처치된 몬스터 전달 (레벨 카운트·치명타 1회 소모 해제·성냥 폭발 위치)
+    public event Action<Monster> OnMonsterDespawned; // 처치가 아닌 소멸(도달 돌진) — 몬스터 단위 외부 기록 정리용 (단검 등)
     public event Action OnFieldCleared;
 
     [SerializeField] private GameObject monsterPrefab;
+    [SerializeField] private GameObject damagePopupPrefab;   // TMP 데미지 플로터 (빌더 메뉴로 생성·연결)
     [SerializeField] private float moveSpeed = 0.2f;     // 필드 높이 기준 하강 속도
     [SerializeField] private MonsterTypeData[] types;    // 몬스터 4종 구성 (Inspector 수동 연결)
     [SerializeField] private int attackDamage = 10;      // 돌진 충돌 데미지 [가정 — 수치 재관찰]
@@ -31,8 +33,8 @@ public class MonsterManager : InGameManager
         base.Initialize();
         fieldManager = GameManager.FieldManager;
         spawner = new MonsterSpawner(GameManager.ObjectPool, monsterPrefab);
-        field = new MonsterField(fieldManager.Columns);
-        popupSpawner = new DamagePopupSpawner();
+        field = new MonsterField();
+        popupSpawner = new DamagePopupSpawner(GameManager.ObjectPool, damagePopupPrefab);
         failY = fieldManager.BottomWall + fieldManager.CellHeight * 0.5f; // 판 바닥 반 칸 위. 필요 시 Shooter 배치와 맞춰 미세조정
 
         // GameOver 진입 시 필드 정리 (기존엔 도달 즉시 GameOver+정리였으나 체력전으로 바뀌며 상태 액션으로 이동)
@@ -118,6 +120,7 @@ public class MonsterManager : InGameManager
         Unsubscribe(monster);
         field.Remove(monster);
         pendingRelease.Add(monster);
+        OnMonsterDespawned?.Invoke(monster);   // 풀 재사용 대비 — 외부의 몬스터 단위 기록(단검 소모 등) 정리 신호
 
         popupSpawner.Show(GameManager.PlayerManager.Position + Vector2.up * 0.5f, attackDamage, false);
         GameManager.PlayerManager.TakeDamage(attackDamage);
@@ -125,10 +128,11 @@ public class MonsterManager : InGameManager
             OnFieldCleared?.Invoke();
     }
 
-    // 데미지 플로터 — 모든 데미지 소스(볼/화상/레이저/파편/폭발)가 Monster 이벤트로 모이므로 여기서 일괄 표시
+    // 데미지 플로터 — 모든 데미지 소스(볼/화상/레이저/파편/폭발)가 Monster 이벤트로 모이므로 여기서 일괄 표시.
+    // 위치 = 몬스터 중앙 (원작 관찰 — 겹쳐도 그대로, 유저 확정)
     private void HandleMonsterDamaged(Monster monster, int damage, bool isCritical)
     {
-        popupSpawner.Show(monster.transform.position + Vector3.up * (fieldManager.CellWidth * 0.7f), damage, isCritical);
+        popupSpawner.Show(monster.transform.position, damage, isCritical);
     }
 
     private void ClearAllMonsters()

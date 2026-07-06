@@ -7,6 +7,8 @@ public class Shooter : MonoBehaviour
     [SerializeField] private BallManager ballManager;
     [SerializeField] private GameObject ballPrefab;
     [SerializeField] private LineRenderer lineRenderer;
+    [SerializeField] private ShooterVisual visual;   // 조준 연출 (파츠 배치는 씬 — 미연결이어도 동작)
+    [SerializeField] private Transform aimDot;       // 조준선 끝 원형 조준점 (빌더 메뉴로 생성·연결)
 
     [Header("Shooting")]
     [SerializeField] private float shootCooldown = 1f;
@@ -27,6 +29,7 @@ public class Shooter : MonoBehaviour
         inputHandler = new ShooterInputHandler(transform);
         shooter = new BallShooter(ballManager, ballPrefab, transform, shootCooldown, ballSpeed);
         aimer = new ShooterAimer(ballManager, lineRenderer, transform, maxBounces, maxDistance);
+        aimer.SetAimDot(aimDot);
 
         inputHandler.OnDirectionChanged += dir => direction = dir;
     }
@@ -38,5 +41,6 @@ public class Shooter : MonoBehaviour
         inputHandler.Tick();
         shooter.Tick(Time.deltaTime, direction);
         aimer.Tick(direction);
+        if (visual != null) visual.SetAim(direction);
     }
 }
