@@ -381,19 +381,21 @@ public static class InGameUIBuilder
 
         // 상단: 레벨 업 + 꽉 찬 빨간 바 + 레벨 배지 — HUD 게이지와 같은 데이터(레벨)의 다른 뷰.
         // 열리는 순간 = 게이지가 꽉 찬 순간이므로 값은 고정 1 (유저 확정 2026-07-07)
-        Text(overlay, "Title", "레벨 업", 64, F(0.94f), Vector2.zero, new(500, 80), bold: true, color: new Color(1f, 0.92f, 0.8f));
-        var bar = SliderGauge(overlay, "LevelBar", new Color(0.9f, 0.25f, 0.15f), F(0.885f), new(-30, 0), new(560, 30));
+        // 위치는 HUD 레벨바와 "같은 top 픽셀 앵커" — 비율 앵커(F)를 쓰면 화면 높이에 따라 어긋난다 (실사례)
+        Vector2 topAnchor = new(0.5f, 1f);
+        Text(overlay, "Title", "레벨 업", 64, topAnchor, new(0, -130), new(500, 80), bold: true, color: new Color(1f, 0.92f, 0.8f));
+        var bar = SliderGauge(overlay, "LevelBar", new Color(0.9f, 0.25f, 0.15f), topAnchor, new(-30, -221), new(560, 30));
         bar.value = 1f;
-        var badgeBg = Image(overlay, "LevelBadgeBg", new Color(0.75f, 0.15f, 0.1f), F(0.885f), new(285, 0), new(56, 56));
+        var badgeBg = Image(overlay, "LevelBadgeBg", new Color(0.75f, 0.15f, 0.1f), topAnchor, new(285, -221), new(56, 56));
         badgeBg.rectTransform.localRotation = Quaternion.Euler(0, 0, 45);
-        var badge = Text(overlay, "LevelBadge", "2", 34, F(0.885f), new(285, 0), new(70, 50), bold: true);
+        var badge = Text(overlay, "LevelBadge", "2", 34, topAnchor, new(285, -221), new(70, 50), bold: true);
 
         // 보유 스킬 슬롯 — Active 4 + Passive 2 (원작 배치)
-        Text(overlay, "ActiveLabel", "액티브", 26, F(0.80f), new(-250, 0), new(200, 34), color: new Color(1f, 0.7f, 0.6f));
-        Text(overlay, "PassiveLabel", "패시브", 26, F(0.80f), new(250, 0), new(200, 34), color: new Color(0.6f, 0.95f, 0.9f));
+        Text(overlay, "ActiveLabel", "액티브", 26, topAnchor, new(-250, -330), new(200, 34), color: new Color(1f, 0.7f, 0.6f));
+        Text(overlay, "PassiveLabel", "패시브", 26, topAnchor, new(250, -330), new(200, 34), color: new Color(0.6f, 0.95f, 0.9f));
         var actives = new Image[4]; var passives = new Image[2];
-        for (int i = 0; i < 4; i++) actives[i] = SlotIcon(overlay, $"ActiveSlot{i}", new Color(0.45f, 0.2f, 0.2f, 0.9f), new(-355 + i * 95, 0));
-        for (int i = 0; i < 2; i++) passives[i] = SlotIcon(overlay, $"PassiveSlot{i}", new Color(0.2f, 0.52f, 0.25f, 0.9f), new(205 + i * 95, 0));   // 패시브 = 초록 (유저 확정)
+        for (int i = 0; i < 4; i++) actives[i] = SlotIcon(overlay, $"ActiveSlot{i}", new Color(0.45f, 0.2f, 0.2f, 0.9f), new(-355 + i * 95, -410));
+        for (int i = 0; i < 2; i++) passives[i] = SlotIcon(overlay, $"PassiveSlot{i}", new Color(0.2f, 0.52f, 0.25f, 0.9f), new(205 + i * 95, -410));   // 패시브 = 초록 (유저 확정)
 
         // 세로 카드 3장 (원작 비율)
         var buttons = new Button[3]; var icons = new Image[3];
@@ -443,7 +445,7 @@ public static class InGameUIBuilder
     // 보유 슬롯 한 칸 — 색은 "테두리만", 안쪽 면은 어둡게 (원작 #74, 유저 확정)
     private static Image SlotIcon(Transform parent, string name, Color frame, Vector2 pos)
     {
-        Image frameImg = Image(parent, name, frame, F(0.74f), pos, new(84, 84));
+        Image frameImg = Image(parent, name, frame, new Vector2(0.5f, 1f), pos, new(84, 84));
         Image inner = Image(frameImg.transform, "Inner", new Color(0.06f, 0.05f, 0.05f, 0.98f), C, Vector2.zero, new(72, 72));
         var icon = Image(inner.transform, "Icon", Color.white, C, Vector2.zero, new(64, 64), sprite: false);
         icon.preserveAspect = true;
