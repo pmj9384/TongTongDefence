@@ -276,7 +276,6 @@ public static class InGameUIBuilder
         var pause = Object.FindFirstObjectByType<PausePanel>(FindObjectsInactive.Include);
         var result = Object.FindFirstObjectByType<ResultPanel>(FindObjectsInactive.Include);
         var cards = Object.FindFirstObjectByType<SkillSelectionPanel>(FindObjectsInactive.Include);
-        var hpBar = Object.FindFirstObjectByType<PlayerHpBar>(FindObjectsInactive.Include);
         if (topBar == null || hud == null || pause == null || result == null || cards == null)
         { Debug.LogError("씬 구조가 예상과 다름 (TopBar/패널들 확인)"); return; }
 
@@ -284,7 +283,6 @@ public static class InGameUIBuilder
         BuildPause(pause);
         BuildResult(result);
         BuildCards(cards);
-        BuildHpSlider(hpBar, bottomBar);
 
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         Debug.Log("[InGameUIBuilder] 완료 — 씬 저장(Cmd+S)하면 확정됩니다");
@@ -330,7 +328,7 @@ public static class InGameUIBuilder
                     ("levelBadge", badge.gameObject), ("levelText", lText), ("pauseButton", pauseBtn));
     }
 
-    // 핸들 없는 게이지 Slider — HP Slider(BuildHpSlider)와 동일 구조
+    // 핸들 없는 게이지 Slider (표시 전용)
     private static Slider SliderGauge(Transform parent, string name, Color fillColor, Vector2 anchor, Vector2 pos, Vector2 size)
     {
         var root = Child(parent, name, anchor, pos, size);
@@ -531,33 +529,6 @@ public static class InGameUIBuilder
         icon.preserveAspect = true;
         icon.enabled = false;
         return icon;
-    }
-
-    // ── 플레이어 HP Slider (BottomBar) ───────────────────────────
-    private static void BuildHpSlider(PlayerHpBar hpBar, RectTransform bottomBar)
-    {
-        foreach (Transform old in bottomBar) if (old.name == "PlayerHpSlider") { Object.DestroyImmediate(old.gameObject); break; }
-
-        var root = Child(bottomBar, "PlayerHpSlider", C, new(0, 40), new(210, 36));   // BottomBar 화면 고정 — 캐릭터(월드) 추종은 화면비마다 어긋남 (실기기 확인 2026-07-07)
-        var slider = root.gameObject.AddComponent<Slider>();
-        var bg = Image(root, "Background", new Color(0.08f, 0.08f, 0.08f, 0.9f), C, Vector2.zero, Vector2.zero);
-        Stretch(bg.rectTransform);
-
-        var fillArea = Child(root, "Fill Area", C, Vector2.zero, new(-8, -8));
-        Stretch(fillArea); fillArea.offsetMin = new(4, 4); fillArea.offsetMax = new(-4, -4);
-        var fill = Image(fillArea, "Fill", new Color(0.35f, 0.9f, 0.3f), C, Vector2.zero, new(10, 0));
-        fill.rectTransform.anchorMin = new(0, 0); fill.rectTransform.anchorMax = new(0, 1);
-
-        slider.fillRect = fill.rectTransform;
-        slider.direction = Slider.Direction.LeftToRight;
-        slider.interactable = false;
-        slider.transition = Selectable.Transition.None;
-        slider.minValue = 0; slider.maxValue = 1; slider.value = 1;
-
-        var text = Text(root, "HpText", "300", 24, C, Vector2.zero, Vector2.zero, bold: true);
-        Stretch(text.rectTransform);
-
-        Assign(hpBar, ("hpSlider", slider), ("hpText", text));
     }
 
     // ── 조립 헬퍼 ────────────────────────────────────────────────
