@@ -382,7 +382,7 @@ public static class InGameUIBuilder
         // 열리는 순간 = 게이지가 꽉 찬 순간이므로 값은 고정 1 (유저 확정 2026-07-07)
         // 위치는 HUD 레벨바와 "같은 top 픽셀 앵커" — 비율 앵커(F)를 쓰면 화면 높이에 따라 어긋난다 (실사례)
         Vector2 topAnchor = new(0.5f, 1f);
-        Text(overlay, "Title", "레벨 업", 64, topAnchor, new(0, -195), new(500, 80), bold: true, color: new Color(1f, 0.92f, 0.8f));
+        Text(overlay, "Title", "레벨 업", 64, topAnchor, new(0, -60), new(500, 80), bold: true, color: new Color(1f, 0.92f, 0.8f));
         var bar = SliderGauge(overlay, "LevelBar", new Color(0.9f, 0.25f, 0.15f), topAnchor, new(-30, -125), new(560, 30));   // HUD 바와 동일 좌표 (겹침)
         bar.value = 1f;
         var badgeBg = Image(overlay, "LevelBadgeBg", new Color(0.75f, 0.15f, 0.1f), topAnchor, new(285, -125), new(56, 56));
@@ -390,11 +390,11 @@ public static class InGameUIBuilder
         var badge = Text(overlay, "LevelBadge", "2", 34, topAnchor, new(285, -125), new(70, 50), bold: true);
 
         // 보유 스킬 슬롯 — Active 4 + Passive 2 (원작 배치)
-        Text(overlay, "ActiveLabel", "Active Skill", 28, topAnchor, new(-330, -400), new(260, 36), bold: true, color: new Color(1f, 0.7f, 0.6f));
-        Text(overlay, "PassiveLabel", "Passive Skill", 28, topAnchor, new(300, -400), new(260, 36), bold: true, color: new Color(0.6f, 0.95f, 0.9f));
+        Text(overlay, "ActiveLabel", "Active Skill", 28, topAnchor, new(-330, -240), new(260, 36), bold: true, color: new Color(1f, 0.7f, 0.6f));
+        Text(overlay, "PassiveLabel", "Passive Skill", 28, topAnchor, new(300, -240), new(260, 36), bold: true, color: new Color(0.6f, 0.95f, 0.9f));
         var actives = new Image[4]; var passives = new Image[2];
-        for (int i = 0; i < 4; i++) actives[i] = SlotIcon(overlay, $"ActiveSlot{i}", new Color(0.45f, 0.2f, 0.2f, 0.9f), new(-355 + i * 95, -460));
-        for (int i = 0; i < 2; i++) passives[i] = SlotIcon(overlay, $"PassiveSlot{i}", new Color(0.2f, 0.52f, 0.25f, 0.9f), new(205 + i * 95, -460));   // 패시브 = 초록 (유저 확정)
+        for (int i = 0; i < 4; i++) actives[i] = SlotIcon(overlay, $"ActiveSlot{i}", new Color(0.45f, 0.2f, 0.2f, 0.9f), new(-355 + i * 95, -320));
+        for (int i = 0; i < 2; i++) passives[i] = SlotIcon(overlay, $"PassiveSlot{i}", new Color(0.2f, 0.52f, 0.25f, 0.9f), new(205 + i * 95, -320));   // 패시브 = 초록 (유저 확정)
 
         // 세로 카드 3장 (원작 비율)
         var buttons = new Button[3]; var icons = new Image[3];
@@ -403,7 +403,7 @@ public static class InGameUIBuilder
         var diamonds = new Image[9]; var inners = new Image[3];
         for (int i = 0; i < 3; i++)
         {
-            var card = Image(overlay, $"Card{i}", new Color(0.22f, 0.11f, 0.11f, 0.98f), C, new((i - 1) * 330, -60), new(310, 720));
+            var card = Image(overlay, $"Card{i}", new Color(0.22f, 0.11f, 0.11f, 0.98f), C, new((i - 1) * 330, -30), new(310, 720));
             card.raycastTarget = true;
             buttons[i] = card.gameObject.AddComponent<Button>();
             buttons[i].targetGraphic = card;
