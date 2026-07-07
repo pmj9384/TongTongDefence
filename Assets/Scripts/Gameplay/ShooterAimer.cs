@@ -57,7 +57,7 @@ public class ShooterAimer
         {
             aimDot.gameObject.SetActive(true);
             aimDot.position = points[points.Count - 1];
-            aimDot.Rotate(0f, 0f, ReticleSpinSpeed * Time.deltaTime);   // 원작: 레티클이 천천히 빙글빙글
+            aimDot.Rotate(0f, 0f, -ReticleSpinSpeed * Time.deltaTime);   // 원작: 레티클 시계방향(오른쪽) 회전
         }
     }
 
