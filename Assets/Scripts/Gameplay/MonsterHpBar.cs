@@ -10,7 +10,7 @@ public class MonsterHpBar : MonoBehaviour
     [Header("바 배치 (루트 로컬 기준, 블록=1×1) — 프리팹 Inspector에서 튜닝")]
     [SerializeField] private float barWidth = 0.9f;
     [SerializeField] private float barHeight = 0.1f;
-    [SerializeField] private float barY = -0.62f;   // 블록 기준 세로 위치 (음수 = 아래)
+    [SerializeField] private float barY = -0.37f;   // 블록 기준 세로 위치 — 0.25 상향 (유저 확정 2026-07-07)
 
     private const float DrainSpeed = 2.5f;   // 바가 스르륵 줄어드는 속도(비율/초) — HUD 게이지 보간과 감각 통일
 
