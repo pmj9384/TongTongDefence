@@ -30,6 +30,15 @@ public class MonsterHpBar : MonoBehaviour
         if (monster != null) monster.OnHpChanged -= Refresh;
     }
 
+    // 세로 멀티셀(사슴 1×2)은 루트가 점유 중앙이라 바가 몸통 가운데 뜸 — 아래 블록 기준으로 내림.
+    // cellLocalHeight = 로컬 단위 한 칸 높이 (CellHeight ÷ 루트 스케일). 1×1은 height=1 → 보정 0
+    public void AlignToBottomCell(int cellHeight, float cellLocalHeight)
+    {
+        Vector3 pos = barRoot.transform.localPosition;
+        pos.y = -(cellHeight - 1) * cellLocalHeight * 0.5f;
+        barRoot.transform.localPosition = pos;
+    }
+
     private void OnEnable()
     {
         if (barRoot != null) barRoot.SetActive(false);   // 풀 재사용 — 피격 전엔 숨김

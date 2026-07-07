@@ -74,6 +74,7 @@ public class MonsterManager : InGameManager
             // 블록 스프라이트가 점유 크기 그대로 제작됨(Block_1x1/1x2/2x1, 1칸=1WU) — 균등 스케일 유지
             monster.transform.localScale = Vector3.one * fieldManager.CellWidth;
             monster.GetComponent<MonsterVisual>().Apply(type);
+            monster.GetComponent<MonsterHpBar>().AlignToBottomCell(type.height, fieldManager.CellHeight / fieldManager.CellWidth);
             // 콜라이더는 블록 스프라이트 크기(0.96/칸)에 맞춤 — 기존 1×1 판정과 동일 기준
             monster.GetComponent<BoxCollider2D>().size = new Vector2(type.width * 0.96f, type.height * 0.96f);
 
