@@ -132,7 +132,7 @@ Assets/
 │  ├ Gameplay/             Ball · Monster · Shooter 계열과 매니저들
 │  │  └ Skills/
 │  │     ├ Core/           순수 C# 규칙 (TongTong.Core — 테스트 대상)
-│  │     └ Effects/        스킬 행동 (IOnHitEffect, 스킬당 1클래스)
+│  │     └ Effects/        온히트 효과 클래스 5개 (IOnHitEffect) — 고스트는 볼 거동, 패시브는 계산기 입력이라 여기 없음
 │  └ UI/                   씬에서 조립하고 코드는 로직만 갖는 슬림 스크립트
 ├ Editor/                  1회 생성 도구 · 빌드 스크립트 (빌드 제외)
 ├ Resources/Tables/        SkillTable.csv · StagePattern.csv
