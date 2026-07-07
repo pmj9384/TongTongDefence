@@ -1,10 +1,10 @@
 using UnityEngine;
 
 [RequireComponent(typeof(LineRenderer))]
+[RequireComponent(typeof(PlayerContext))]
 public class Shooter : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private BallManager ballManager;
     [SerializeField] private GameObject ballPrefab;
     [SerializeField] private LineRenderer lineRenderer;
     [SerializeField] private ShooterVisual visual;   // 조준 연출 (파츠 배치는 씬 — 미연결이어도 동작)
@@ -18,6 +18,7 @@ public class Shooter : MonoBehaviour
     [SerializeField] private int maxBounces = 2;
     [SerializeField] private float maxDistance = 30f;
 
+    private PlayerContext context;
     private BallShooter shooter;
     private ShooterAimer aimer;
     private ShooterInputHandler inputHandler;
@@ -26,6 +27,8 @@ public class Shooter : MonoBehaviour
     // GameManager.Awake()의 매니저 주입이 끝난 뒤여야 하므로 Awake가 아닌 Start에서 구성
     private void Start()
     {
+        context = GetComponent<PlayerContext>();   // 매니저 관문 (형제 공유) — 배선은 관문 1곳뿐
+        BallManager ballManager = context.Balls;
         inputHandler = new ShooterInputHandler(transform);
         shooter = new BallShooter(ballManager, ballPrefab, transform, shootCooldown, ballSpeed);
         aimer = new ShooterAimer(ballManager, lineRenderer, transform, maxBounces, maxDistance);
@@ -42,7 +45,7 @@ public class Shooter : MonoBehaviour
         aimer.Tick(direction);
 
         // GamePlay가 아니면 입력·발사·캐릭터 회전 정지 — 일시정지/스킬 선택 중 캐릭터가 입력 따라 돌던 버그
-        if (ballManager.CurrentGameState != GameManager.GameState.GamePlay)
+        if (context.Balls.CurrentGameState != GameManager.GameState.GamePlay)
             return;
 
         inputHandler.Tick();

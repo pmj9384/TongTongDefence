@@ -206,7 +206,7 @@ public static class InGameUIBuilder
         var go = new GameObject("DamagePopup");
         var tmp = go.AddComponent<TextMeshPro>();
         tmp.font = kostar;
-        tmp.fontSize = 3f;                                 // 월드 TMP 크기 — "너무 크다" 피드백 반영 [눈튜닝]
+        tmp.fontSize = 2.4f;                               // 월드 TMP 크기 — 2차 축소 (유저 확정 2026-07-07) [눈튜닝]
         tmp.fontStyle = FontStyles.Bold;
         tmp.alignment = TextAlignmentOptions.Center;
         tmp.text = "99";
