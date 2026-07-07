@@ -1175,7 +1175,7 @@ MonoBehaviour:
     hpMultiplier: 2.5
     width: 2
     height: 1
-  attackDamage: 10
+  attackDamage: 50
   chargeSpeed: 4
   chargeDelay: 3
   topSpawnRowOffset: 1
@@ -4276,7 +4276,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 32.2, y: 231.4}
-  m_SizeDelta: {x: 210, y: 28}
+  m_SizeDelta: {x: 110, y: 28}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &436699393
 MonoBehaviour:

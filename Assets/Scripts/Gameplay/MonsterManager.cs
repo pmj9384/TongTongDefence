@@ -13,7 +13,7 @@ public class MonsterManager : InGameManager
     [SerializeField] private GameObject damagePopupPrefab;   // TMP 데미지 플로터 (빌더 메뉴로 생성·연결)
     [SerializeField] private float moveSpeed = 0.2f;     // 필드 높이 기준 하강 속도
     [SerializeField] private MonsterTypeData[] types;    // 몬스터 4종 구성 (Inspector 수동 연결)
-    [SerializeField] private int attackDamage = 10;      // 돌진 충돌 데미지 [가정 — 수치 재관찰]
+    [SerializeField] private int attackDamage = 50;      // 돌진 충돌 데미지 — HP 300 기준 6대 사망 (유저 확정 2026-07-07)
     [SerializeField] private float chargeSpeed = 4f;     // 도달 후 플레이어 돌진 속도
     [SerializeField] private float chargeDelay = 3f;     // 도달 후 돌진까지 대기 (원작 관찰: 약 3초, 이때 처치 가능)
     [SerializeField] private int topSpawnRowOffset = 1;  // 스폰 시작 행 — 원작은 판 상단 한 행 아래부터 (완충 행:
