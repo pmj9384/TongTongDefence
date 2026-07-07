@@ -11,8 +11,7 @@ public class BallShooter
     private readonly ObjectPool<GameObject> ballPool;
 
     private float cooldownTimer;
-    private readonly Dictionary<SkillId, Sprite> spriteCache = new();
-    private Sprite normalSprite;
+    private readonly Dictionary<string, Sprite> spriteCache = new();
 
     public BallShooter(BallManager ballManager, GameObject ballPrefab, Transform origin, float shootCooldown, float ballSpeed)
     {
@@ -48,7 +47,7 @@ public class BallShooter
     {
         GameObject ballObj = ballPool.Get();
         ballObj.transform.position = origin.position;
-        ballObj.GetComponent<SpriteRenderer>().sprite = GetSprite(loadout.skill);
+        ballObj.GetComponent<SpriteRenderer>().sprite = GetSprite(loadout.spritePath);
 
         Ball ball = ballObj.GetComponent<Ball>();
         ball.OnHitMonster += HandleBallHitMonster;
@@ -76,26 +75,15 @@ public class BallShooter
         ballPool.Release(ball.gameObject);
     }
 
-    // 타입별 볼 스프라이트 (지급 리소스 파일명 매핑 — Nomal은 원문 오타 그대로)
-    private Sprite GetSprite(SkillId? skill)
+    // 볼 스프라이트 — 경로는 로드아웃(CSV)이 들고 옴, 여기는 로드+캐시만 (스킬 종류를 모름 = OCP)
+    private Sprite GetSprite(string path)
     {
-        if (skill == null)
-            return normalSprite ??= Resources.Load<Sprite>("Sprites/Balls/Ball_Nomal_Ball");
-
-        if (!spriteCache.TryGetValue(skill.Value, out Sprite sprite))
+        if (!spriteCache.TryGetValue(path, out Sprite sprite))
         {
-            string name = skill.Value switch
-            {
-                SkillId.FireBall => "Ball_Fire_ball",
-                SkillId.IceBall => "Ball_Ice_Ball",
-                SkillId.LaserBall => "Ball_Laser_Ball",
-                SkillId.GhostBall => "Ball_Ghost_Ball",
-                SkillId.ClusterBall => "Ball_Cluster_Ball",
-                _ => "Ball_Nomal_Ball",
-            };
-            sprite = Resources.Load<Sprite>($"Sprites/Balls/{name}");
-            spriteCache[skill.Value] = sprite;
+            sprite = Resources.Load<Sprite>(path);
+            spriteCache[path] = sprite;
         }
         return sprite;
     }
+
 }

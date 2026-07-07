@@ -93,11 +93,13 @@ public class SkillManager : InGameManager
         }
 
         int level = playerSkills.GetLevel(skill.Value);
+        SkillDef def = playerSkills.Table[skill.Value];
         loadout = new BallLoadout
         {
             skill = skill,
             level = level,
-            damage = playerSkills.Table[skill.Value].GetLevel(level).ballDamage,
+            damage = def.GetLevel(level).ballDamage,
+            spritePath = def.iconName,   // 볼 스프라이트 = 카드 아이콘과 동일 에셋 (CSV가 SSOT)
         };
         return true;
     }
