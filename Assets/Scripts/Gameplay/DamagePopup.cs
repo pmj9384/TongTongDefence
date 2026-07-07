@@ -25,7 +25,7 @@ public class DamagePopup : MonoBehaviour
     {
         // 정중앙 고정 대신 좁은 지터 — 연타 시 숫자가 완전히 포개지지 않으면서도 몬스터를 벗어나지 않게
         transform.position = position + new Vector3(
-            Random.Range(-SpawnJitter.x, SpawnJitter.x), Random.Range(-SpawnJitter.y, SpawnJitter.y), 0f);
+            UnityEngine.Random.Range(-SpawnJitter.x, SpawnJitter.x), UnityEngine.Random.Range(-SpawnJitter.y, SpawnJitter.y), 0f);
         timer = Lifetime;
 
         text.text = damage.ToString();
