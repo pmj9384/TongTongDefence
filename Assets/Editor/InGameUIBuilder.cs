@@ -376,6 +376,7 @@ public static class InGameUIBuilder
     private static void BuildCards(SkillSelectionPanel panel)
     {
         Clear(panel.transform);
+        Stretch((RectTransform)panel.transform);   // 루트도 강제 리셋 — 손튜닝/옛 오프셋 잔재가 남지 않게
         var overlay = Overlay(panel.transform, 0.8f);
 
         // 상단: 레벨 업 + 꽉 찬 빨간 바 + 레벨 배지 — HUD 게이지와 같은 데이터(레벨)의 다른 뷰.
