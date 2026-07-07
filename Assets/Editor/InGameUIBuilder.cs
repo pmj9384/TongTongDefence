@@ -277,7 +277,7 @@ public static class InGameUIBuilder
 
         Text(hud.transform, "StageName", "1. 깊은 숲", 42, new(0.5f, 1f), new(0, -176), new(520, 54), bold: true);   // 유저 Play 튜닝 확정 (2026-07-07)
 
-        Image(hud.transform, "ProgressBorder", new Color(0.85f, 0.8f, 0.7f, 0.9f), new(0.5f, 1f), new(0, -219), new(470, 34));
+        Image(hud.transform, "ProgressBorder", new Color(0.85f, 0.8f, 0.7f, 0.9f), new(0.5f, 1f), new(0, -219), new(464, 30));   // 테두리 2px — 별개 바처럼 안 보이게
         var pSlider = SliderGauge(hud.transform, "ProgressSlider", new Color(0.85f, 0.22f, 0.18f),
                                   new(0.5f, 1f), new(0, -66), new(400, 22));
         var pText = Text(hud.transform, "ProgressText", "0%", 22, new(0.5f, 1f), new(0, -219), new(460, 30), bold: true);
