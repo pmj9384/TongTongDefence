@@ -317,6 +317,18 @@ public static class InGameUIBuilder
     }
 
     // ── 일시정지 (원작 #36 비율) ─────────────────────────────────
+    // 퍼즈만 재조립 (다른 패널 보존)
+    [MenuItem("Tools/Build Pause Only")]
+    public static void BuildPauseOnly()
+    {
+        font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Font/Kostar SDF 2.asset");
+        var pause = Object.FindFirstObjectByType<PausePanel>(FindObjectsInactive.Include);
+        if (pause == null || font == null) { Debug.LogError("PausePanel/폰트 확인"); return; }
+        BuildPause(pause);
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        Debug.Log("[InGameUIBuilder] 퍼즈 재조립 완료 (테두리+안판 슬롯) — 씬 저장하세요");
+    }
+
     private static void BuildPause(PausePanel pause)
     {
         Clear(pause.transform);
