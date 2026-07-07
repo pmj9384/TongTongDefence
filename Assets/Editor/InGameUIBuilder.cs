@@ -284,8 +284,8 @@ public static class InGameUIBuilder
 
         // 레벨 게이지: 중앙 고정폭 + 굵게 + 우측 끝 배지 (원작 #35 — 스트레치 앵커 폐기: 화면 폭 따라 길어지던 문제)
         var lSlider = SliderGauge(hud.transform, "LevelSlider", new Color(0.95f, 0.6f, 0.15f),
-                                  new(0.5f, 1f), new(-35, -117), new(560, 34));
-        var badge = Image(hud.transform, "LevelBadge", new Color(0.95f, 0.6f, 0.15f), new(0.5f, 1f), new(265, -117), new(34, 34));
+                                  new(0.5f, 1f), new(-35, -117), new(560, 30));
+        var badge = Image(hud.transform, "LevelBadge", new Color(0.95f, 0.6f, 0.15f), new(0.5f, 1f), new(265, -117), new(40, 40));
         badge.rectTransform.localRotation = Quaternion.Euler(0, 0, 45);
         var lText = Text(hud.transform, "LevelText", "Lv.1", 28, new(0.5f, 1f), new(330, -117), new(110, 40), bold: true, color: new Color(1f, 0.9f, 0.6f));
 
@@ -378,14 +378,11 @@ public static class InGameUIBuilder
     {
         Clear(panel.transform);
         var overlay = Overlay(panel.transform, 0.8f);
+        // 오버레이가 상단 HUD(레벨 바)를 가리지 않게 — 바는 HUD 것 하나를 재사용 (꽉 차면 빨강, 유저 확정)
+        var overlayRect = (RectTransform)overlay;
+        overlayRect.offsetMax = new Vector2(0, -150);
 
-        // 상단: 레벨 업 타이틀 + 가득 찬 빨간 바 + 레벨 숫자 배지
-        Text(overlay, "Title", "레벨 업", 64, F(0.93f), Vector2.zero, new(500, 80), bold: true, color: new Color(1f, 0.92f, 0.8f));
-        var bar = SliderGauge(overlay, "LevelBar", new Color(0.9f, 0.25f, 0.15f), F(0.875f), new(-30, 0), new(560, 30));
-        bar.value = 1f;   // 레벨업 순간이므로 항상 가득 (원작)
-        var badgeBg = Image(overlay, "LevelBadgeBg", new Color(0.75f, 0.15f, 0.1f), F(0.875f), new(285, 0), new(56, 56));
-        badgeBg.rectTransform.localRotation = Quaternion.Euler(0, 0, 45);
-        var badge = Text(overlay, "LevelBadge", "2", 34, F(0.875f), new(285, 0), new(70, 50), bold: true);
+        Text(overlay, "Title", "레벨 업", 64, F(0.94f), Vector2.zero, new(500, 80), bold: true, color: new Color(1f, 0.92f, 0.8f));
 
         // 보유 스킬 슬롯 — Active 4 + Passive 2 (원작 배치)
         Text(overlay, "ActiveLabel", "액티브", 26, F(0.80f), new(-250, 0), new(200, 34), color: new Color(1f, 0.7f, 0.6f));
@@ -411,7 +408,7 @@ public static class InGameUIBuilder
             descs[i] = Text(card.transform, "Description", "", 28, C, new(0, -140), new(260, 240), color: new Color(0.95f, 0.9f, 0.85f));
         }
 
-        Assign(panel, ("overlay", overlay.gameObject), ("levelBadge", badge));
+        Assign(panel, ("overlay", overlay.gameObject));
         AssignArray(panel, "activeSlots", actives);
         AssignArray(panel, "passiveSlots", passives);
         AssignArray(panel, "buttons", buttons);

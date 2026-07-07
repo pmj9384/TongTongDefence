@@ -11,7 +11,6 @@ public class SkillSelectionPanel : MonoBehaviour
 {
     [Header("씬 참조 (빌더 조립)")]
     [SerializeField] private GameObject overlay;
-    [SerializeField] private TMP_Text levelBadge;        // 레벨 바 오른쪽 숫자 (원작 #67)
     [SerializeField] private Image[] activeSlots;        // 보유 액티브 4칸
     [SerializeField] private Image[] passiveSlots;       // 보유 패시브 2칸
     [SerializeField] private Button[] buttons;
@@ -32,12 +31,11 @@ public class SkillSelectionPanel : MonoBehaviour
         }
     }
 
-    public void Show(List<SkillId> cards, PlayerSkills owned, int playerLevel, Action<SkillId> onPicked)
+    public void Show(List<SkillId> cards, PlayerSkills owned, Action<SkillId> onPicked)
     {
         this.onPicked = onPicked;
         currentCards = cards;
 
-        levelBadge.text = playerLevel.ToString();
         FillSlots(activeSlots, owned, SkillKind.ActiveBall);
         FillSlots(passiveSlots, owned, SkillKind.Passive);
 

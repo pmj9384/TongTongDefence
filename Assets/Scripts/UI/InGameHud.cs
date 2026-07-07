@@ -15,6 +15,8 @@ public class InGameHud : UIElement
     [SerializeField] private Button pauseButton;
 
     [SerializeField] private float gaugeFillSpeed = 1.5f;   // 게이지가 목표값까지 차오르는 속도(비율/초) [눈튜닝]
+    [SerializeField] private Color levelFillColor = new(0.95f, 0.6f, 0.15f);   // 평상시 주황
+    [SerializeField] private Color levelFullColor = new(0.9f, 0.25f, 0.15f);   // 꽉 참 = 빨강 (원작 레벨업 바)
 
     private int lastProgressPercent = -1;
     private int lastLevel = -1;
@@ -22,10 +24,12 @@ public class InGameHud : UIElement
     private float progressTarget;
     private float levelTarget;
     private bool fillingToFull;   // 레벨업 연출: 게이지를 먼저 꽉 채우는 중
+    private Image levelFill;      // 색 전환용 (Slider fillRect에서 획득)
 
     private void Start()   // 매니저 Initialize 완료 후 (관례)
     {
         pauseButton.onClick.AddListener(TogglePause);
+        levelFill = levelSlider.fillRect.GetComponent<Image>();
     }
 
     private void Update()
@@ -61,6 +65,8 @@ public class InGameHud : UIElement
         // 부드럽게 차오르는 연출 (원작) — 목표값은 즉시, 표시는 보간
         progressSlider.value = Mathf.MoveTowards(progressSlider.value, progressTarget, gaugeFillSpeed * Time.deltaTime);
         levelSlider.value = Mathf.MoveTowards(levelSlider.value, levelTarget, gaugeFillSpeed * Time.deltaTime);
+        // 꽉 차면 빨갛게 — HUD 바 하나가 "레벨업 바" 역할까지 (선택창 전용 바 없음, 유저 확정)
+        levelFill.color = levelSlider.value >= 0.999f ? levelFullColor : levelFillColor;
 
         // 꽉 찼으면 0으로 스냅 후 이월분부터 다시 참 — 스킬 선택(정지) 동안엔 가득 찬 채 유지되고,
         // 선택을 마치고 재개된 첫 프레임에 리셋된다 ("선택하면 0으로" — 유저 확정)
