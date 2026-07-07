@@ -3,8 +3,7 @@
 > **통통 디펜스: 핀볼 마스터** 1스테이지 모작 (PurpleCow 채용 과제)
 > Unity 6000.3.10 · Android(세로) · 개발 기간 7일 (6/30 화 ~ 7/7 화, 토요일 제외)
 
-<p align="center"><img src="Docs/gif/hero_aim_shoot.gif" width="270" alt="조준과 발사"> <img src="Docs/gif/levelup_cards.gif" width="270" alt="레벨업 3택지"></p>
-<p align="center"><img src="Docs/gif/combat_info.gif" width="270" alt="전투 정보"> <img src="Docs/gif/stage_clear.gif" width="270" alt="스테이지 클리어"></p>
+> 플레이 영상: 제출물의 `TongTongDefence_play.mp4` (조작 → 웨이브 → 스킬 → 클리어/실패, 설명 자막 포함)
 
 몬스터를 향해 볼을 쏘아 튕기며 싸우는 핀볼 디펜스입니다. 원작 1스테이지의 핵심 루프인 발사, 물리 반사 전투, 레벨업 3택지, 스킬 성장, 웨이브, 결과 화면을 재현했습니다.
 
