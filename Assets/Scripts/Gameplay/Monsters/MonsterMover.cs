@@ -70,12 +70,15 @@ public class MonsterMover : MonoBehaviour
         }
     }
 
-    // 자기 콜라이더 아래변에서 짧은 레이 — 몬스터끼리는 물리 해소가 없어서(kinematic)
-    // 감속된 앞 몬스터를 뒤가 파고들던 문제를 "이동 전 양보"로 해결 [가정: 원작도 겹치지 않고 대기]
+    // 자기 콜라이더 아래변 "폭 전체"를 BoxCast — 몬스터끼리는 물리 해소가 없어서(kinematic)
+    // 감속된 앞 몬스터를 뒤가 파고들던 문제를 "이동 전 양보"로 해결 [가정: 원작도 겹치지 않고 대기].
+    // 중심 한 줄 Raycast였을 땐 폭 넓은 돌벌레(2×1)가 자기 아래 1×1을 비껴 못 보고 밀고 내려감 (실기기 발견)
     private bool IsBlockedByFrontMonster()
     {
-        Vector2 feet = new Vector2(rb.position.x, body.bounds.min.y - 0.01f);
-        return Physics2D.Raycast(feet, Vector2.down, FrontGap, monsterMask).collider != null;
+        Bounds b = body.bounds;
+        Vector2 origin = new(b.center.x, b.min.y - 0.02f);
+        Vector2 size = new(b.size.x * 0.9f, 0.02f);
+        return Physics2D.BoxCast(origin, size, 0f, Vector2.down, FrontGap, monsterMask).collider != null;
     }
 
     private void TickCharge()

@@ -888,7 +888,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MonsterManager
   monsterPrefab: {fileID: 2798252329521943894, guid: 052a9cfa7b82b4e38a13ed9635fee4e1, type: 3}
   damagePopupPrefab: {fileID: 2443922786207449817, guid: b877207d77da14e5b954fcb7ef059597, type: 3}
-  moveSpeed: 0.1
+  moveSpeed: 0.15
   types:
   - typeName: Fluffy
     bodySprite: {fileID: -2842281454074129482, guid: 33997d61b91084969aead04b41575ddd, type: 3}
