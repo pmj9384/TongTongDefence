@@ -7,9 +7,10 @@ public class MonsterHpBar : MonoBehaviour
 {
     [SerializeField] private Sprite barSprite;   // white.png (프리팹에서 연결)
 
-    private const float BarWidth = 0.9f;    // 루트 로컬 기준 (블록 = 1×1)
-    private const float BarHeight = 0.1f;
-    private const float BarY = -0.62f;      // 블록 바로 아래
+    [Header("바 배치 (루트 로컬 기준, 블록=1×1) — 프리팹 Inspector에서 튜닝")]
+    [SerializeField] private float barWidth = 0.9f;
+    [SerializeField] private float barHeight = 0.1f;
+    [SerializeField] private float barY = -0.62f;   // 블록 기준 세로 위치 (음수 = 아래)
 
     private const float DrainSpeed = 2.5f;   // 바가 스르륵 줄어드는 속도(비율/초) — HUD 게이지 보간과 감각 통일
 
@@ -52,8 +53,8 @@ public class MonsterHpBar : MonoBehaviour
         if (!barRoot.activeSelf || displayRatio == targetRatio) return;
 
         displayRatio = Mathf.MoveTowards(displayRatio, targetRatio, DrainSpeed * Time.deltaTime);
-        fill.localScale = new Vector3(BarWidth * displayRatio, BarHeight, 1f);
-        fill.localPosition = new Vector3(-BarWidth * (1f - displayRatio) * 0.5f, BarY, 0f);
+        fill.localScale = new Vector3(barWidth * displayRatio, barHeight, 1f);
+        fill.localPosition = new Vector3(-barWidth * (1f - displayRatio) * 0.5f, barY, 0f);
     }
 
     private void Build()
@@ -62,9 +63,9 @@ public class MonsterHpBar : MonoBehaviour
         barRoot.transform.SetParent(transform, false);
 
         CreateBar("Background", new Color(0.1f, 0.1f, 0.1f, 0.85f), 2,
-                  new Vector3(BarWidth, BarHeight, 1f), new Vector3(0f, BarY, 0f));
+                  new Vector3(barWidth, barHeight, 1f), new Vector3(0f, barY, 0f));
         GameObject fillGo = CreateBar("Fill", new Color(0.9f, 0.25f, 0.2f), 3,   // 원작: 몬스터 체력바는 빨강
-                  new Vector3(BarWidth, BarHeight, 1f), new Vector3(0f, BarY, 0f));
+                  new Vector3(barWidth, barHeight, 1f), new Vector3(0f, barY, 0f));
         fill = fillGo.transform;
         fillRenderer = fillGo.GetComponent<SpriteRenderer>();
 
