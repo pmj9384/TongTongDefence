@@ -35,12 +35,21 @@ public class SafeAreaCanvas : MonoBehaviour
     public RectTransform rectTransform;
 
 
+    private Rect lastApplied;
+
     private void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
-        // 에디터 제외 가드 제거 — Device Simulator가 Screen.safeArea를 제공하므로
-        // 에디터에서도 적용해야 노치 잘림을 Play로 검증 가능 (시뮬레이터 미사용 시 전체화면 = 무해)
         ApplySafeAreaCanvasAnchor();
+    }
+
+    // 1회 적용이 아니라 변화 감지 재적용 — 씬 리로드(재시작) 직후 프레임엔 Screen.width와
+    // safeArea가 다른 기준으로 읽혀 앵커가 화면 밖(3.3배)으로 계산되던 실버그의 표준 해법.
+    // 잘못 계산된 프레임이 있어도 다음 프레임에 자가 교정된다 (회전/시뮬레이터 전환도 자동 대응)
+    private void Update()
+    {
+        if (Screen.safeArea != lastApplied)
+            ApplySafeAreaCanvasAnchor();
     }
 
     public void ApplySafeAreaCanvasAnchor()
@@ -56,6 +65,7 @@ public class SafeAreaCanvas : MonoBehaviour
 
         rectTransform.anchorMin = minAnchor;
         rectTransform.anchorMax = maxAnchor;
+        lastApplied = Screen.safeArea;
     }
 
 }
