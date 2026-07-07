@@ -317,16 +317,46 @@ public static class InGameUIBuilder
     }
 
     // ── 일시정지 (원작 #36 비율) ─────────────────────────────────
-    // 퍼즈만 재조립 (다른 패널 보존)
-    [MenuItem("Tools/Build Pause Only")]
+    // 퍼즈 "슬롯 6개만" 새 구조로 교체 — 위치는 기존(유저 튜닝) 그대로, 다른 오브젝트(유저 제작 포함) 불변
+    [MenuItem("Tools/Build Pause Only (슬롯만 교체)")]
     public static void BuildPauseOnly()
     {
-        font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Font/Kostar SDF 2.asset");
         var pause = Object.FindFirstObjectByType<PausePanel>(FindObjectsInactive.Include);
-        if (pause == null || font == null) { Debug.LogError("PausePanel/폰트 확인"); return; }
-        BuildPause(pause);
+        if (pause == null) { Debug.LogError("PausePanel 없음"); return; }
+        Transform overlay = pause.transform.Find("Overlay");
+        if (overlay == null) { Debug.LogError("Overlay 없음"); return; }
+
+        var active = new Image[4]; var passive = new Image[2];
+        for (int i = 0; i < 4; i++) active[i] = SwapSlot(overlay, $"ActiveSlot{i}", new Color(0.55f, 0.2f, 0.18f));
+        for (int i = 0; i < 2; i++) passive[i] = SwapSlot(overlay, $"PassiveSlot{i}", new Color(0.16f, 0.45f, 0.42f));
+
+        AssignArray(pause, "activeIcons", active);
+        AssignArray(pause, "passiveIcons", passive);
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
-        Debug.Log("[InGameUIBuilder] 퍼즈 재조립 완료 (테두리+안판 슬롯) — 씬 저장하세요");
+        Debug.Log("[InGameUIBuilder] 퍼즈 슬롯 6개 교체 완료 (위치 보존) — 씬 저장하세요");
+    }
+
+    // 기존 슬롯의 앵커/위치/크기를 그대로 물려받는 교체
+    private static Image SwapSlot(Transform overlay, string name, Color frame)
+    {
+        Transform old = overlay.Find(name);
+        Vector2 anchorMin = new(0.5f, 0.6f), anchorMax = new(0.5f, 0.6f), pos = Vector2.zero, size = new(116, 116);
+        int sibling = -1;
+        if (old != null)
+        {
+            var r = (RectTransform)old;
+            anchorMin = r.anchorMin; anchorMax = r.anchorMax; pos = r.anchoredPosition; size = r.sizeDelta;
+            sibling = old.GetSiblingIndex();
+            Object.DestroyImmediate(old.gameObject);
+        }
+        Image frameImg = Image(overlay, name, frame, anchorMin, pos, size);
+        var fr = frameImg.rectTransform; fr.anchorMin = anchorMin; fr.anchorMax = anchorMax;
+        if (sibling >= 0) frameImg.transform.SetSiblingIndex(sibling);
+        Image inner = Image(frameImg.transform, "Inner", new Color(0.06f, 0.05f, 0.05f, 0.98f), C, Vector2.zero, size - new Vector2(12, 12));
+        var icon = Image(inner.transform, "Icon", Color.white, C, Vector2.zero, size - new Vector2(22, 22), sprite: false);
+        icon.preserveAspect = true;
+        icon.enabled = false;
+        return icon;
     }
 
     private static void BuildPause(PausePanel pause)
