@@ -8,6 +8,7 @@ public class ShooterAimer
 {
     private const float LineStartOffset = 0.45f;   // 캐릭터 스프라이트를 뚫고 시작하지 않게
     private const float DotSpacing = 0.28f;        // 점 간격 [눈튜닝]
+    private const float ReticleSpinSpeed = 120f;   // 레티클 회전 속도(도/초) — 원작 연출 [눈튜닝]
     private const float DotSize = 0.55f;           // 점 크기(스케일) [눈튜닝]
     private const int MaxDots = 80;
 
@@ -56,6 +57,7 @@ public class ShooterAimer
         {
             aimDot.gameObject.SetActive(true);
             aimDot.position = points[points.Count - 1];
+            aimDot.Rotate(0f, 0f, ReticleSpinSpeed * Time.deltaTime);   // 원작: 레티클이 천천히 빙글빙글
         }
     }
 
