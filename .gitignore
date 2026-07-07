@@ -25,3 +25,6 @@ Builds/
 
 # Unity 빌드 임시
 .utmp/
+
+# Test Runner 임시
+Assets/Resources/PerformanceTestRun*.json*
