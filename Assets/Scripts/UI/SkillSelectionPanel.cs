@@ -29,6 +29,7 @@ public class SkillSelectionPanel : MonoBehaviour
     private static readonly Color PassiveEdge = new(0.07f, 0.2f, 0.12f, 0.98f);
     private static readonly Color PassiveInner = new(0.16f, 0.36f, 0.25f);
     private static readonly Color DiaOn = new(0.95f, 0.75f, 0.2f);    // 레벨 다이아 켜짐
+    private static readonly Color DiaPreview = new(0.5f, 0.38f, 0.1f); // 미보유(0렙) — "고르면 켜질 자리" 어두운 노랑 (유저 확정)
     private static readonly Color DiaOff = new(0.12f, 0.08f, 0.08f);
 
     private Action<SkillId> onPicked;
@@ -67,7 +68,7 @@ public class SkillSelectionPanel : MonoBehaviour
                 descriptions[i].text = "기본 볼이 1개 늘어나 연달아 발사됩니다.";
                 damageBadges[i].SetActive(true);
                 damages[i].text = "볼 +1";
-                SetDiamonds(i, 0);
+                SetDiamonds(i, 0, 1);
                 continue;
             }
 
@@ -84,16 +85,22 @@ public class SkillSelectionPanel : MonoBehaviour
             // 원작 #73: 액티브는 ★볼데미지, 레벨은 하단 다이아 (선택 시 도달할 레벨만큼 점등)
             damageBadges[i].SetActive(isActiveKind);
             if (isActiveKind) damages[i].text = $"★ {def.GetLevel(showLevel).ballDamage}";
-            SetDiamonds(i, showLevel);
+            SetDiamonds(i, owned.GetLevel(cards[i]), showLevel);
         }
 
         overlay.SetActive(true);
     }
 
-    private void SetDiamonds(int card, int level)
+    // 보유 레벨만큼 밝은 노랑, 미보유(0렙)는 첫 칸만 어두운 노랑(선택 프리뷰), 나머지 어둡게
+    private void SetDiamonds(int card, int currentLevel, int showLevel)
     {
         for (int k = 0; k < 3; k++)
-            diamonds[card * 3 + k].color = k < level ? DiaOn : DiaOff;
+        {
+            Color c = DiaOff;
+            if (currentLevel == 0) c = k == 0 ? DiaPreview : DiaOff;
+            else if (k < showLevel) c = DiaOn;
+            diamonds[card * 3 + k].color = c;
+        }
     }
 
     // 보유 스킬 슬롯 채우기 (퍼즈 패널과 동일 문법) — 빈 칸은 아이콘 숨김
