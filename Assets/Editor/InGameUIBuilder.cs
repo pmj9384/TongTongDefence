@@ -275,12 +275,12 @@ public static class InGameUIBuilder
         hud.transform.SetParent(topBar, false);
         Stretch((RectTransform)hud.transform);
 
-        Text(hud.transform, "StageName", "1. 깊은 숲", 34, new(0.5f, 1f), new(0, -28), new(500, 44), bold: true);
+        Text(hud.transform, "StageName", "1. 깊은 숲", 42, new(0.5f, 1f), new(0, -176), new(520, 54), bold: true);   // 유저 Play 튜닝 확정 (2026-07-07)
 
-        Image(hud.transform, "ProgressBorder", new Color(0.85f, 0.8f, 0.7f, 0.9f), new(0.5f, 1f), new(0, -66), new(408, 30));
+        Image(hud.transform, "ProgressBorder", new Color(0.85f, 0.8f, 0.7f, 0.9f), new(0.5f, 1f), new(0, -219), new(470, 34));
         var pSlider = SliderGauge(hud.transform, "ProgressSlider", new Color(0.85f, 0.22f, 0.18f),
                                   new(0.5f, 1f), new(0, -66), new(400, 22));
-        var pText = Text(hud.transform, "ProgressText", "0%", 20, new(0.5f, 1f), new(0, -66), new(400, 26), bold: true);
+        var pText = Text(hud.transform, "ProgressText", "0%", 22, new(0.5f, 1f), new(0, -219), new(460, 30), bold: true);
 
         // 레벨 게이지: 중앙 고정폭 + 굵게 + 우측 끝 배지 (원작 #35 — 스트레치 앵커 폐기: 화면 폭 따라 길어지던 문제)
         var lSlider = SliderGauge(hud.transform, "LevelSlider", new Color(0.95f, 0.6f, 0.15f),
