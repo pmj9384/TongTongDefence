@@ -76,12 +76,27 @@ public class Ball : MonoBehaviour
         rb.linearVelocity = toTarget.normalized * launchSpeed;
     }
 
+    // 수평 잠금 방지 임계 — 수평 기준 약 ±8.6° 이내면 이만큼 기울임 [눈튜닝]
+    private const float MinVerticalRatio = 0.15f;
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
         // 물리 반사 후 부동소수점 드리프트를 발사 속력으로 재정규화 (모든 충돌 공통).
         // 속도가 0으로 죽은 비정상 케이스(동시 접촉 상쇄 등)는 아래로 떨어뜨려 회수 루프로 탈출 (안전망)
         Vector2 velocity = rb.linearVelocity;
-        rb.linearVelocity = (velocity.sqrMagnitude > 0.01f ? velocity.normalized : Vector2.down) * launchSpeed;
+        Vector2 dir = velocity.sqrMagnitude > 0.01f ? velocity.normalized : Vector2.down;
+
+        // 수평 잠금 방지 (breakout류 공통 처리): 수직 성분이 임계 미만이면 기울여줌 — 아니면
+        // 좌우 벽의 x반사만으로는 영원히 수평 왕복 (실기기 재현: 스폰 밀림으로 vy≈0 → 상단 복도에 갇힘).
+        // 부호 유지, 완전 0이면 아래(회수 방향). 조준이 ±75° 제한이라 정상 플레이에선 발동 안 함
+        if (Mathf.Abs(dir.y) < MinVerticalRatio)
+        {
+            float x = dir.x == 0f ? 1f : Mathf.Sign(dir.x);
+            dir = new Vector2(x * Mathf.Sqrt(1f - MinVerticalRatio * MinVerticalRatio),
+                              dir.y > 0f ? MinVerticalRatio : -MinVerticalRatio);
+        }
+
+        rb.linearVelocity = dir * launchSpeed;
 
         int layer = collision.gameObject.layer;
         if (layer == LayerMask.NameToLayer("Wall"))
