@@ -97,13 +97,6 @@ public class GameManager : MonoBehaviour
         AddGameStateStartAction(GameState.GameOver, PauseTimeScale);
         AddGameStateStartAction(GameState.GameClear, PauseTimeScale);
 
-        // BGM 연결 - BgmClipId는 프로젝트마다 Defines/Enums.cs에 정의 필요
-        // AddGameStateEnterAction(GameState.GameReady, () => SoundManager.Instance.PlayBgm(BgmClipId.IngameBGM));
-        AddGameStateEnterAction(GameState.GameStop, () => SoundManager.Instance.PauseBgm());
-        AddGameStateEnterAction(GameState.GameStop, () => SoundManager.Instance.PauseSfx());
-        AddGameStateExitAction(GameState.GameStop, () => SoundManager.Instance.ResumeBgm());
-        AddGameStateExitAction(GameState.GameStop, () => SoundManager.Instance.ResumeSfx());
-        AddGameStateEnterAction(GameState.GameOver, () => SoundManager.Instance.StopBgm());
 
         // TODO: GameOver 시 점수 저장 등 게임 특화 로직 추가
         // AddGameStateEnterAction(GameState.GameOver, () => GameDataManager.Instance.PlayerAccountData.TryUpdateBestScore(score));
