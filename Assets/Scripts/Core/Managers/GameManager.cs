@@ -98,8 +98,6 @@ public class GameManager : MonoBehaviour
         AddGameStateStartAction(GameState.GameClear, PauseTimeScale);
 
 
-        // TODO: GameOver 시 점수 저장 등 게임 특화 로직 추가
-        // AddGameStateEnterAction(GameState.GameOver, () => GameDataManager.Instance.PlayerAccountData.TryUpdateBestScore(score));
     }
 
     private void InitializeCoreManagers()
