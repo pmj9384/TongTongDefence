@@ -14,6 +14,7 @@ public class MonsterHpBar : MonoBehaviour
     private Monster monster;
     private float baseWidth;    // 프리팹에서 저작된 가득 폭/기준 위치 — 코드가 덮지 않고 읽어서 씀
     private float baseX;
+    private float baseRootY;    // 프리팹의 HpBar 기준 y (유저 튜닝값) — 멀티셀 보정의 원점
     private float displayRatio = 1f;
     private float targetRatio = 1f;
 
@@ -23,6 +24,7 @@ public class MonsterHpBar : MonoBehaviour
         monster.OnHpChanged += Refresh;
         baseWidth = fill.localScale.x;
         baseX = fill.localPosition.x;
+        baseRootY = barRoot.transform.localPosition.y;
     }
 
     private void OnDestroy()
@@ -35,7 +37,7 @@ public class MonsterHpBar : MonoBehaviour
     public void AlignToBottomCell(int cellHeight, float cellLocalHeight)
     {
         Vector3 pos = barRoot.transform.localPosition;
-        pos.y = -(cellHeight - 1) * cellLocalHeight * 0.5f;
+        pos.y = baseRootY - (cellHeight - 1) * cellLocalHeight * 0.5f;   // 프리팹 값 "기준" 상대 보정 — 덮지 않음
         barRoot.transform.localPosition = pos;
     }
 
