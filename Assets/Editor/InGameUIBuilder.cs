@@ -436,8 +436,8 @@ public static class InGameUIBuilder
         Text(overlay, "ActiveLabel", "Active Skill", 28, topAnchor, new(-330, -240), new(260, 36), bold: true, color: new Color(1f, 0.7f, 0.6f));
         Text(overlay, "PassiveLabel", "Passive Skill", 28, topAnchor, new(300, -240), new(260, 36), bold: true, color: new Color(0.6f, 0.95f, 0.9f));
         var actives = new Image[4]; var passives = new Image[2];
-        for (int i = 0; i < 4; i++) actives[i] = SlotIcon(overlay, $"ActiveSlot{i}", new Color(0.45f, 0.2f, 0.2f, 0.9f), new(-355 + i * 95, -320));
-        for (int i = 0; i < 2; i++) passives[i] = SlotIcon(overlay, $"PassiveSlot{i}", new Color(0.2f, 0.52f, 0.25f, 0.9f), new(205 + i * 95, -320));   // 패시브 = 초록 (유저 확정)
+        for (int i = 0; i < 4; i++) actives[i] = SlotIcon(overlay, $"ActiveSlot{i}", new Color(0.45f, 0.2f, 0.2f, 0.9f), new(-390 + i * 122, -330));
+        for (int i = 0; i < 2; i++) passives[i] = SlotIcon(overlay, $"PassiveSlot{i}", new Color(0.2f, 0.52f, 0.25f, 0.9f), new(235 + i * 122, -330));   // 패시브 = 초록 (유저 확정)
 
         // 세로 카드 3장 (원작 비율)
         var buttons = new Button[3]; var icons = new Image[3];
@@ -490,9 +490,9 @@ public static class InGameUIBuilder
     // 보유 슬롯 한 칸 — 색은 "테두리만", 안쪽 면은 어둡게 (원작 #74, 유저 확정)
     private static Image SlotIcon(Transform parent, string name, Color frame, Vector2 pos)
     {
-        Image frameImg = Image(parent, name, frame, new Vector2(0.5f, 1f), pos, new(84, 84));
-        Image inner = Image(frameImg.transform, "Inner", new Color(0.06f, 0.05f, 0.05f, 0.98f), C, Vector2.zero, new(72, 72));
-        var icon = Image(inner.transform, "Icon", Color.white, C, Vector2.zero, new(64, 64), sprite: false);
+        Image frameImg = Image(parent, name, frame, new Vector2(0.5f, 1f), pos, new(116, 116));   // 퍼즈 슬롯과 동일 크기 (유저 확정)
+        Image inner = Image(frameImg.transform, "Inner", new Color(0.06f, 0.05f, 0.05f, 0.98f), C, Vector2.zero, new(104, 104));
+        var icon = Image(inner.transform, "Icon", Color.white, C, Vector2.zero, new(94, 94), sprite: false);
         icon.preserveAspect = true;
         icon.enabled = false;
         return icon;
