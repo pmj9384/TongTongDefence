@@ -21,10 +21,13 @@ public class SkillSelectionPanel : MonoBehaviour
     [SerializeField] private TMP_Text[] damages;          // ★N 볼 데미지 (원작 #73)
     [SerializeField] private GameObject[] damageBadges;   // 패시브 카드에선 숨김
     [SerializeField] private Image[] diamonds;            // 카드당 3개 flat (i*3+k) — 레벨 표시
+    [SerializeField] private Image[] cardInners;          // 투톤 안판 (테두리색은 버튼 이미지)
 
-    // 카드 배경 — 액티브 팥색 / 패시브 초록 (원작 퍼즈 창 색 대조, 유저 확정)
-    private static readonly Color ActiveCardColor = new(0.32f, 0.18f, 0.18f, 0.97f);
-    private static readonly Color PassiveCardColor = new(0.14f, 0.32f, 0.22f, 0.97f);
+    // 카드 투톤 — 바깥 테두리(진함) + 안판(밝음), 액티브 팥 / 패시브 초록 (유저 확정)
+    private static readonly Color ActiveEdge = new(0.22f, 0.11f, 0.11f, 0.98f);
+    private static readonly Color ActiveInner = new(0.38f, 0.22f, 0.21f);
+    private static readonly Color PassiveEdge = new(0.07f, 0.2f, 0.12f, 0.98f);
+    private static readonly Color PassiveInner = new(0.16f, 0.36f, 0.25f);
     private static readonly Color DiaOn = new(0.95f, 0.75f, 0.2f);    // 레벨 다이아 켜짐
     private static readonly Color DiaOff = new(0.12f, 0.08f, 0.08f);
 
@@ -57,7 +60,8 @@ public class SkillSelectionPanel : MonoBehaviour
 
             if (cards[i] == SkillId.NormalBall)   // 채움 카드 — 테이블에 없음, 고정 표기
             {
-                buttons[i].image.color = ActiveCardColor;
+                buttons[i].image.color = ActiveEdge;
+                cardInners[i].color = ActiveInner;
                 icons[i].sprite = Resources.Load<Sprite>("Sprites/Balls/Ball_Nomal_Ball");
                 names[i].text = "노멀 볼";
                 descriptions[i].text = "기본 볼이 1개 늘어나 연달아 발사됩니다.";
@@ -69,16 +73,17 @@ public class SkillSelectionPanel : MonoBehaviour
 
             SkillDef def = owned.Table[cards[i]];
             int showLevel = owned.GetLevel(cards[i]) + 1;   // 미보유=Lv1, 보유=현재+1
-            buttons[i].image.color = def.kind == SkillKind.ActiveBall ? ActiveCardColor : PassiveCardColor;
+            bool isActiveKind = def.kind == SkillKind.ActiveBall;
+            buttons[i].image.color = isActiveKind ? ActiveEdge : PassiveEdge;
+            cardInners[i].color = isActiveKind ? ActiveInner : PassiveInner;
 
             icons[i].sprite = Resources.Load<Sprite>(def.iconName);
             names[i].text = def.displayName;
             descriptions[i].text = def.description;
 
             // 원작 #73: 액티브는 ★볼데미지, 레벨은 하단 다이아 (선택 시 도달할 레벨만큼 점등)
-            bool isActive = def.kind == SkillKind.ActiveBall;
-            damageBadges[i].SetActive(isActive);
-            if (isActive) damages[i].text = $"★ {def.GetLevel(showLevel).ballDamage}";
+            damageBadges[i].SetActive(isActiveKind);
+            if (isActiveKind) damages[i].text = $"★ {def.GetLevel(showLevel).ballDamage}";
             SetDiamonds(i, showLevel);
         }
 

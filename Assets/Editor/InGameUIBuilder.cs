@@ -383,31 +383,33 @@ public static class InGameUIBuilder
         // 열리는 순간 = 게이지가 꽉 찬 순간이므로 값은 고정 1 (유저 확정 2026-07-07)
         // 위치는 HUD 레벨바와 "같은 top 픽셀 앵커" — 비율 앵커(F)를 쓰면 화면 높이에 따라 어긋난다 (실사례)
         Vector2 topAnchor = new(0.5f, 1f);
-        Text(overlay, "Title", "레벨 업", 64, topAnchor, new(0, -130), new(500, 80), bold: true, color: new Color(1f, 0.92f, 0.8f));
-        var bar = SliderGauge(overlay, "LevelBar", new Color(0.9f, 0.25f, 0.15f), topAnchor, new(-30, -221), new(560, 30));
+        Text(overlay, "Title", "레벨 업", 64, topAnchor, new(0, -180), new(500, 80), bold: true, color: new Color(1f, 0.92f, 0.8f));
+        var bar = SliderGauge(overlay, "LevelBar", new Color(0.9f, 0.25f, 0.15f), topAnchor, new(-30, -250), new(560, 30));
         bar.value = 1f;
-        var badgeBg = Image(overlay, "LevelBadgeBg", new Color(0.75f, 0.15f, 0.1f), topAnchor, new(285, -221), new(56, 56));
+        var badgeBg = Image(overlay, "LevelBadgeBg", new Color(0.75f, 0.15f, 0.1f), topAnchor, new(285, -250), new(56, 56));
         badgeBg.rectTransform.localRotation = Quaternion.Euler(0, 0, 45);
-        var badge = Text(overlay, "LevelBadge", "2", 34, topAnchor, new(285, -221), new(70, 50), bold: true);
+        var badge = Text(overlay, "LevelBadge", "2", 34, topAnchor, new(285, -250), new(70, 50), bold: true);
 
         // 보유 스킬 슬롯 — Active 4 + Passive 2 (원작 배치)
-        Text(overlay, "ActiveLabel", "액티브", 26, topAnchor, new(-250, -330), new(200, 34), color: new Color(1f, 0.7f, 0.6f));
-        Text(overlay, "PassiveLabel", "패시브", 26, topAnchor, new(250, -330), new(200, 34), color: new Color(0.6f, 0.95f, 0.9f));
+        Text(overlay, "ActiveLabel", "액티브", 26, topAnchor, new(-250, -380), new(200, 34), color: new Color(1f, 0.7f, 0.6f));
+        Text(overlay, "PassiveLabel", "패시브", 26, topAnchor, new(250, -380), new(200, 34), color: new Color(0.6f, 0.95f, 0.9f));
         var actives = new Image[4]; var passives = new Image[2];
-        for (int i = 0; i < 4; i++) actives[i] = SlotIcon(overlay, $"ActiveSlot{i}", new Color(0.45f, 0.2f, 0.2f, 0.9f), new(-355 + i * 95, -410));
-        for (int i = 0; i < 2; i++) passives[i] = SlotIcon(overlay, $"PassiveSlot{i}", new Color(0.2f, 0.52f, 0.25f, 0.9f), new(205 + i * 95, -410));   // 패시브 = 초록 (유저 확정)
+        for (int i = 0; i < 4; i++) actives[i] = SlotIcon(overlay, $"ActiveSlot{i}", new Color(0.45f, 0.2f, 0.2f, 0.9f), new(-355 + i * 95, -460));
+        for (int i = 0; i < 2; i++) passives[i] = SlotIcon(overlay, $"PassiveSlot{i}", new Color(0.2f, 0.52f, 0.25f, 0.9f), new(205 + i * 95, -460));   // 패시브 = 초록 (유저 확정)
 
         // 세로 카드 3장 (원작 비율)
         var buttons = new Button[3]; var icons = new Image[3];
         var names = new TMP_Text[3]; var descs = new TMP_Text[3];
         var damages = new TMP_Text[3]; var damageBadges = new GameObject[3];
-        var diamonds = new Image[9];
+        var diamonds = new Image[9]; var inners = new Image[3];
         for (int i = 0; i < 3; i++)
         {
-            var card = Image(overlay, $"Card{i}", new Color(0.32f, 0.18f, 0.18f, 0.97f), C, new((i - 1) * 330, -140), new(310, 720));
+            var card = Image(overlay, $"Card{i}", new Color(0.22f, 0.11f, 0.11f, 0.98f), C, new((i - 1) * 330, -60), new(310, 720));
             card.raycastTarget = true;
             buttons[i] = card.gameObject.AddComponent<Button>();
             buttons[i].targetGraphic = card;
+            // 안쪽 마감: 밝은 안판 (에셋 없이 투톤 — 원작 #76의 테두리+면 구조 근사)
+            inners[i] = Image(card.transform, "Inner", new Color(0.38f, 0.22f, 0.21f, 1f), C, Vector2.zero, new(286, 696));
 
             names[i] = Text(card.transform, "Name", "", 40, C, new(0, 280), new(290, 52), bold: true);
             icons[i] = Image(card.transform, "Icon", Color.white, C, new(0, 130), new(170, 170), sprite: false);
@@ -439,6 +441,7 @@ public static class InGameUIBuilder
         AssignArray(panel, "damages", damages);
         AssignArray(panel, "damageBadges", damageBadges);
         AssignArray(panel, "diamonds", diamonds);
+        AssignArray(panel, "cardInners", inners);
         overlay.gameObject.SetActive(false);
     }
 
