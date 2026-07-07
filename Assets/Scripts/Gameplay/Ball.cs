@@ -113,6 +113,11 @@ public class Ball : MonoBehaviour
             // 원작: 볼은 블록(몬스터)에 맞으면 데미지를 주고 튕겨나감 — 소멸하지 않음.
             // 데미지 계산·적용은 이벤트를 받은 SkillManager가 담당 (Ball은 사실만 보고)
             OnHitMonster?.Invoke(this, collision.collider, collision.GetContact(0).normal);
+
+            // 레이저볼 예외 (원작 재관찰 2026-07-07): 행 전체 피해라 튕길 때마다 발동하면 사기 —
+            // 첫 히트 후 즉시 회수 모드 (소멸이 아니라 귀환 — 인벤토리 자원은 보존)
+            if (ActiveSkill == SkillId.LaserBall)
+                isReturning = true;
         }
     }
 }
