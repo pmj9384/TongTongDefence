@@ -9,10 +9,10 @@ public class DamagePopup : MonoBehaviour
 {
     public event Action<DamagePopup> OnFinished;   // 풀 반환 신호
 
-    private const float Lifetime = 0.6f;
+    private const float Lifetime = 0.5f;
     // 원작(#82) 재확인: 몬스터 중앙 근처에서 "살짝만" 떠오르고 사라짐 — 포물선/하강 없음 (유저 정정 2026-07-07).
     // 좌우 미세 분산(damage 기반 결정적)만 유지 — 겹친 팝업이 완전히 포개지지 않게
-    private const float RiseSpeed = 0.35f;
+    private const float RiseSpeed = 0.15f;
     private const float SideSpread = 0.12f;
 
     private TMP_Text text;

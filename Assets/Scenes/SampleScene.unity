@@ -7889,7 +7889,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SkillManager
   selectionPanel: {fileID: 818010003}
   fragmentPrefab: {fileID: 8712345678901234567, guid: f2a9b3c8d1e04b7fa6c5d4e3b2a19087, type: 3}
-  initialNormalBalls: 5
+  initialNormalBalls: 4
 --- !u!1 &818030001
 GameObject:
   m_ObjectHideFlags: 0
