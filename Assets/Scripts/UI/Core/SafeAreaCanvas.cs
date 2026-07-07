@@ -36,6 +36,7 @@ public class SafeAreaCanvas : MonoBehaviour
 
 
     private Rect lastApplied;
+    private Vector2Int lastScreen;
 
     private void Awake()
     {
@@ -48,12 +49,17 @@ public class SafeAreaCanvas : MonoBehaviour
     // 잘못 계산된 프레임이 있어도 다음 프레임에 자가 교정된다 (회전/시뮬레이터 전환도 자동 대응)
     private void Update()
     {
-        if (Screen.safeArea != lastApplied)
+        // safeArea "또는" 화면 크기가 바뀌면 재적용 — 리로드 프레임엔 둘 중 어느 쪽이든 잘못 읽힐 수 있다
+        // (실측: 앵커가 3.3배로 커지는 케이스와 0으로 붕괴하는 케이스 둘 다 관측됨)
+        if (Screen.safeArea != lastApplied || Screen.width != lastScreen.x || Screen.height != lastScreen.y)
             ApplySafeAreaCanvasAnchor();
     }
 
     public void ApplySafeAreaCanvasAnchor()
     {
+        if (Screen.width <= 0 || Screen.height <= 0 || Screen.safeArea.width <= 0)
+            return;   // 리로드 직후 무효 프레임 — 다음 프레임에 재시도
+
         var minAnchor = Screen.safeArea.position;
         var maxAnchor = Screen.safeArea.position + Screen.safeArea.size;
 
@@ -66,6 +72,7 @@ public class SafeAreaCanvas : MonoBehaviour
         rectTransform.anchorMin = minAnchor;
         rectTransform.anchorMax = maxAnchor;
         lastApplied = Screen.safeArea;
+        lastScreen = new Vector2Int(Screen.width, Screen.height);
     }
 
 }
