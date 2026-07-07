@@ -277,7 +277,6 @@ public static class InGameUIBuilder
 
         Text(hud.transform, "StageName", "1. 깊은 숲", 42, new(0.5f, 1f), new(0, -32), new(520, 54), bold: true);
 
-        Image(hud.transform, "ProgressBorder", new Color(0.85f, 0.8f, 0.7f, 0.9f), new(0.5f, 1f), new(0, -78), new(464, 30));   // 테두리 2px
         var pSlider = SliderGauge(hud.transform, "ProgressSlider", new Color(0.85f, 0.22f, 0.18f),
                                   new(0.5f, 1f), new(0, -66), new(400, 22));
         var pText = Text(hud.transform, "ProgressText", "0%", 22, new(0.5f, 1f), new(0, -78), new(460, 30), bold: true);
