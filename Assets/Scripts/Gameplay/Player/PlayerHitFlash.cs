@@ -14,16 +14,34 @@ public class PlayerHitFlash : MonoBehaviour
     private const int Blinks = 2;   // 두 번 깜빡 — 한 번짜리 몬스터 피격보다 무게감 있게
 
     private SpriteRenderer[] parts;
+    private Color[] baseColors;   // 원색 복원용 — HP바(초록/검정 유색)를 흰색으로 덮던 버그 방지
     private int lastHp = int.MinValue;
     private Coroutine flash;
 
     // 매니저 Initialize(GameManager.Awake) 완료 후 구독 (관례)
     private void Start()
     {
-        parts = GetComponentsInChildren<SpriteRenderer>(true);
+        // HP바(HpBar 하위)는 제외 — 캐릭터 몸통만 점멸. HP바까지 훑으면 유색 바가 흰색으로 덮임
+        var all = GetComponentsInChildren<SpriteRenderer>(true);
+        var list = new System.Collections.Generic.List<SpriteRenderer>();
+        foreach (SpriteRenderer sr in all)
+            if (sr.GetComponentInParent<PlayerWorldHpBar>() == null && !IsUnderHpBar(sr.transform))
+                list.Add(sr);
+        parts = list.ToArray();
+        baseColors = new Color[parts.Length];
+        for (int i = 0; i < parts.Length; i++) baseColors[i] = parts[i].color;
+
         context = GetComponent<PlayerContext>();
         context.Health.OnChanged += HandleHpChanged;
         lastHp = context.Health.Current;
+    }
+
+    // "HpBar"라는 이름의 조상이 있으면 체력바 파츠 (몬스터바와 동일 명명 규약)
+    private static bool IsUnderHpBar(Transform t)
+    {
+        for (Transform p = t; p != null; p = p.parent)
+            if (p.name == "HpBar") return true;
+        return false;
     }
 
     private void OnDestroy()
@@ -47,17 +65,16 @@ public class PlayerHitFlash : MonoBehaviour
         var wait = new WaitForSeconds(FlashDuration);
         for (int i = 0; i < Blinks; i++)
         {
-            Tint(FlashColor);
+            for (int k = 0; k < parts.Length; k++) parts[k].color = FlashColor;
             yield return wait;
-            Tint(Color.white);
+            Restore();   // 흰색이 아니라 "원색"으로 복원
             yield return wait;
         }
         flash = null;
     }
 
-    private void Tint(Color color)
+    private void Restore()
     {
-        foreach (SpriteRenderer part in parts)
-            part.color = color;
+        for (int k = 0; k < parts.Length; k++) parts[k].color = baseColors[k];
     }
 }
