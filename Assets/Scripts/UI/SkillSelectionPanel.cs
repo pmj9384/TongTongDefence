@@ -9,8 +9,11 @@ using UnityEngine.UI;
 // UIElement 미편입 의도: Show(cards, owned, cb)가 데이터 주도형이라 무인자 Show() 계약과 불일치.
 public class SkillSelectionPanel : MonoBehaviour
 {
-    [Header("씬 참조 (카드 3장)")]
+    [Header("씬 참조 (빌더 조립)")]
     [SerializeField] private GameObject overlay;
+    [SerializeField] private TMP_Text levelBadge;        // 레벨 바 오른쪽 숫자 (원작 #67)
+    [SerializeField] private Image[] activeSlots;        // 보유 액티브 4칸
+    [SerializeField] private Image[] passiveSlots;       // 보유 패시브 2칸
     [SerializeField] private Button[] buttons;
     [SerializeField] private Image[] icons;
     [SerializeField] private TMP_Text[] names;
@@ -29,10 +32,14 @@ public class SkillSelectionPanel : MonoBehaviour
         }
     }
 
-    public void Show(List<SkillId> cards, PlayerSkills owned, Action<SkillId> onPicked)
+    public void Show(List<SkillId> cards, PlayerSkills owned, int playerLevel, Action<SkillId> onPicked)
     {
         this.onPicked = onPicked;
         currentCards = cards;
+
+        levelBadge.text = playerLevel.ToString();
+        FillSlots(activeSlots, owned, SkillKind.ActiveBall);
+        FillSlots(passiveSlots, owned, SkillKind.Passive);
 
         for (int i = 0; i < buttons.Length; i++)
         {
@@ -60,6 +67,21 @@ public class SkillSelectionPanel : MonoBehaviour
         }
 
         overlay.SetActive(true);
+    }
+
+    // 보유 스킬 슬롯 채우기 (퍼즈 패널과 동일 문법) — 빈 칸은 아이콘 숨김
+    private void FillSlots(Image[] slots, PlayerSkills owned, SkillKind kind)
+    {
+        int i = 0;
+        foreach (SkillId id in owned.Owned(kind))
+        {
+            if (i >= slots.Length) break;
+            slots[i].enabled = true;
+            slots[i].sprite = Resources.Load<Sprite>(owned.Table[id].iconName);
+            i++;
+        }
+        for (; i < slots.Length; i++)
+            slots[i].enabled = false;
     }
 
     public void Hide() => overlay.SetActive(false);

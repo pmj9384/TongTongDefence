@@ -361,35 +361,75 @@ public static class InGameUIBuilder
         overlay.gameObject.SetActive(false);
     }
 
-    // ── 3택지 카드 ───────────────────────────────────────────────
+    // 선택창만 재조립 (다른 패널 눈튜닝 보존용 별도 메뉴)
+    [MenuItem("Tools/Build Selection Panel (원작 레이아웃)")]
+    public static void BuildSelectionOnly()
+    {
+        font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Font/Kostar SDF 2.asset");
+        var panel = Object.FindFirstObjectByType<SkillSelectionPanel>(FindObjectsInactive.Include);
+        if (panel == null || font == null) { Debug.LogError("SkillSelectionPanel/폰트 확인"); return; }
+        BuildCards(panel);
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        Debug.Log("[InGameUIBuilder] 선택창 재조립 완료 (세로 카드+레벨 바+보유 슬롯) — 씬 저장하세요");
+    }
+
+    // ── 3택지 선택창 (원작 #67: 레벨 업 타이틀 + 빨간 레벨 바 + 보유 슬롯 + 세로 카드 3장) ──
     private static void BuildCards(SkillSelectionPanel panel)
     {
         Clear(panel.transform);
-        var overlay = Overlay(panel.transform, 0.6f);
+        var overlay = Overlay(panel.transform, 0.8f);
 
+        // 상단: 레벨 업 타이틀 + 가득 찬 빨간 바 + 레벨 숫자 배지
+        Text(overlay, "Title", "레벨 업", 64, F(0.93f), Vector2.zero, new(500, 80), bold: true, color: new Color(1f, 0.92f, 0.8f));
+        var bar = SliderGauge(overlay, "LevelBar", new Color(0.9f, 0.25f, 0.15f), F(0.875f), new(-30, 0), new(560, 30));
+        bar.value = 1f;   // 레벨업 순간이므로 항상 가득 (원작)
+        var badgeBg = Image(overlay, "LevelBadgeBg", new Color(0.75f, 0.15f, 0.1f), F(0.875f), new(285, 0), new(56, 56));
+        badgeBg.rectTransform.localRotation = Quaternion.Euler(0, 0, 45);
+        var badge = Text(overlay, "LevelBadge", "2", 34, F(0.875f), new(285, 0), new(70, 50), bold: true);
+
+        // 보유 스킬 슬롯 — Active 4 + Passive 2 (원작 배치)
+        Text(overlay, "ActiveLabel", "액티브", 26, F(0.80f), new(-250, 0), new(200, 34), color: new Color(1f, 0.7f, 0.6f));
+        Text(overlay, "PassiveLabel", "패시브", 26, F(0.80f), new(250, 0), new(200, 34), color: new Color(0.6f, 0.95f, 0.9f));
+        var actives = new Image[4]; var passives = new Image[2];
+        for (int i = 0; i < 4; i++) actives[i] = SlotIcon(overlay, $"ActiveSlot{i}", new Color(0.45f, 0.2f, 0.2f, 0.9f), new(-355 + i * 95, 0));
+        for (int i = 0; i < 2; i++) passives[i] = SlotIcon(overlay, $"PassiveSlot{i}", new Color(0.15f, 0.4f, 0.38f, 0.9f), new(205 + i * 95, 0));
+
+        // 세로 카드 3장 (원작 비율)
         var buttons = new Button[3]; var icons = new Image[3];
         var names = new TMP_Text[3]; var levels = new TMP_Text[3]; var descs = new TMP_Text[3];
         for (int i = 0; i < 3; i++)
         {
-            var card = Image(overlay, $"Card{i}", new Color(0.16f, 0.22f, 0.2f, 0.95f), C, new((i - 1) * 350, 0), new(320, 460));
+            var card = Image(overlay, $"Card{i}", new Color(0.32f, 0.18f, 0.18f, 0.97f), C, new((i - 1) * 330, -140), new(310, 720));
             card.raycastTarget = true;
             buttons[i] = card.gameObject.AddComponent<Button>();
             buttons[i].targetGraphic = card;
 
-            icons[i] = Image(card.transform, "Icon", Color.white, C, new(0, 110), new(150, 150), sprite: false);
+            names[i] = Text(card.transform, "Name", "", 40, C, new(0, 280), new(290, 52), bold: true);
+            icons[i] = Image(card.transform, "Icon", Color.white, C, new(0, 130), new(170, 170), sprite: false);
             icons[i].preserveAspect = true;
-            names[i] = Text(card.transform, "Name", "", 38, C, new(0, -10), new(300, 50), bold: true);
-            levels[i] = Text(card.transform, "Level", "", 26, C, new(0, -55), new(300, 36), color: new Color(1f, 0.85f, 0.4f));
-            descs[i] = Text(card.transform, "Description", "", 24, C, new(0, -140), new(280, 120), color: new Color(0.85f, 0.88f, 0.85f));
+            levels[i] = Text(card.transform, "Level", "", 28, C, new(0, 5), new(290, 38), color: new Color(1f, 0.85f, 0.4f));
+            descs[i] = Text(card.transform, "Description", "", 28, C, new(0, -140), new(260, 240), color: new Color(0.95f, 0.9f, 0.85f));
         }
 
-        Assign(panel, ("overlay", overlay.gameObject));
+        Assign(panel, ("overlay", overlay.gameObject), ("levelBadge", badge));
+        AssignArray(panel, "activeSlots", actives);
+        AssignArray(panel, "passiveSlots", passives);
         AssignArray(panel, "buttons", buttons);
         AssignArray(panel, "icons", icons);
         AssignArray(panel, "names", names);
         AssignArray(panel, "levels", levels);
         AssignArray(panel, "descriptions", descs);
         overlay.gameObject.SetActive(false);
+    }
+
+    // 보유 슬롯 한 칸 — 프레임(색 유지) + 아이콘(스킬 채움/빈 칸은 비활성)
+    private static Image SlotIcon(Transform parent, string name, Color frame, Vector2 pos)
+    {
+        Image frameImg = Image(parent, name, frame, F(0.74f), pos, new(84, 84));
+        var icon = Image(frameImg.transform, "Icon", Color.white, C, Vector2.zero, new(70, 70), sprite: false);
+        icon.preserveAspect = true;
+        icon.enabled = false;
+        return icon;
     }
 
     // ── 플레이어 HP Slider (BottomBar) ───────────────────────────

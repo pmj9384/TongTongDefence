@@ -6429,6 +6429,7 @@ GameObject:
   - component: {fileID: 818008313}
   - component: {fileID: 818050004}
   - component: {fileID: 818050005}
+  - component: {fileID: 818050006}
   m_Layer: 0
   m_Name: Shooter
   m_TagString: Untagged
@@ -6584,7 +6585,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76ad183d4c2744b47935d0026d36bec9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Shooter
-  ballManager: {fileID: 9542191}
   ballPrefab: {fileID: 8527519021748018683, guid: 800242a1077844fe7a89467df2ff5d3f, type: 3}
   lineRenderer: {fileID: 818008313}
   visual: {fileID: 818009003}
@@ -6876,7 +6876,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c0ddb6b1878f84439a15d7f515593ba2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerDeathPose
-  gameManager: {fileID: 1245753429}
   visual: {fileID: 818009002}
 --- !u!114 &818050005
 MonoBehaviour:
@@ -6890,7 +6889,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a7b8c9d0e1f2031425364758697a8b9c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHitFlash
-  playerManager: {fileID: 818030003}
+--- !u!114 &818050006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 818008311}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8c9d0e1f20314253647586b7a8b9c0d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerContext
+  gameManager: {fileID: 1245753429}
 --- !u!1 &818060001
 GameObject:
   m_ObjectHideFlags: 0
