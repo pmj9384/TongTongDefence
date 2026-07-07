@@ -9,12 +9,15 @@ public class MonsterHpBar : MonoBehaviour
     [SerializeField] private GameObject barRoot;
     [SerializeField] private Transform fill;
 
+    [Header("점유 높이별 바 y (유저 실측 2026-07-07 — 프리팹에서 튜닝)")]
+    [SerializeField] private float barY1x1 = -0.635f;
+    [SerializeField] private float barYTall = 1.1f;   // 세로 2칸(사슴)
+
     private const float DrainSpeed = 2.5f;   // 스르륵 줄어드는 속도(비율/초) — HUD 게이지와 감각 통일
 
     private Monster monster;
     private float baseWidth;    // 프리팹에서 저작된 가득 폭/기준 위치 — 코드가 덮지 않고 읽어서 씀
     private float baseX;
-    private float baseRootY;    // 프리팹의 HpBar 기준 y (유저 튜닝값) — 멀티셀 보정의 원점
     private float displayRatio = 1f;
     private float targetRatio = 1f;
 
@@ -24,7 +27,6 @@ public class MonsterHpBar : MonoBehaviour
         monster.OnHpChanged += Refresh;
         baseWidth = fill.localScale.x;
         baseX = fill.localPosition.x;
-        baseRootY = barRoot.transform.localPosition.y;
     }
 
     private void OnDestroy()
@@ -32,12 +34,11 @@ public class MonsterHpBar : MonoBehaviour
         if (monster != null) monster.OnHpChanged -= Refresh;
     }
 
-    // 세로 멀티셀(사슴 1×2)은 루트가 점유 중앙이라 바가 몸통 가운데 뜸 — 아래 블록 기준으로 내림.
-    // cellLocalHeight = 로컬 단위 한 칸 높이 (CellHeight ÷ 루트 스케일). 1×1은 height=1 → 보정 0
+    // 점유 높이별 바 위치 — 계산식 대신 실측값 (세로 멀티셀은 루트가 점유 중앙이라 좌표계가 다름)
     public void AlignToBottomCell(int cellHeight, float cellLocalHeight)
     {
         Vector3 pos = barRoot.transform.localPosition;
-        pos.y = baseRootY - (cellHeight - 1) * cellLocalHeight * 0.5f;   // 프리팹 값 "기준" 상대 보정 — 덮지 않음
+        pos.y = cellHeight > 1 ? barYTall : barY1x1;
         barRoot.transform.localPosition = pos;
     }
 
