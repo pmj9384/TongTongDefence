@@ -59,6 +59,52 @@ public static class InGameUIBuilder
         Debug.Log("[InGameUIBuilder] 점선 조준선 + 조준점 완료 — 씬 저장하세요");
     }
 
+    // 플레이어 월드 HP바 조립 (원작 #84 발밑 캡슐 — 몬스터 HpBar와 동일 문법) + 캔버스 슬라이더 은퇴
+    [MenuItem("Tools/Build Player HpBar (월드)")]
+    public static void BuildPlayerWorldHpBar()
+    {
+        font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Font/Kostar SDF 2.asset");
+        var shooter = GameObject.Find("Shooter");
+        if (shooter == null || font == null) { Debug.LogError("Shooter/폰트 확인"); return; }
+        var white = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Resources/Sprites/UI/white.png");
+
+        Transform old = shooter.transform.Find("HpBar");
+        if (old != null) Object.DestroyImmediate(old.gameObject);
+        var root = new GameObject("HpBar").transform;
+        root.SetParent(shooter.transform, false);
+        root.localPosition = new Vector3(0f, -0.55f, 0f);   // 발밑 [눈튜닝]
+
+        SpriteRenderer Bar(string name, Color c, int order, Vector3 scale)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(root, false);
+            go.transform.localScale = scale;
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = white; sr.color = c; sr.sortingOrder = order;
+            return sr;
+        }
+        Bar("Background", new Color(0.08f, 0.08f, 0.08f, 0.9f), 6, new Vector3(1.1f, 0.22f, 1f));
+        var fill = Bar("Fill", new Color(0.35f, 0.9f, 0.3f), 7, new Vector3(1.04f, 0.16f, 1f));
+
+        var textGo = new GameObject("Value");
+        textGo.transform.SetParent(root, false);
+        var tmp = textGo.AddComponent<TextMeshPro>();
+        tmp.font = font; tmp.fontSize = 1.6f; tmp.alignment = TextAlignmentOptions.Center;
+        tmp.rectTransform.sizeDelta = new Vector2(2f, 0.3f);
+        tmp.sortingOrder = 8;
+        tmp.text = "300";
+
+        var bar = shooter.GetComponent<PlayerWorldHpBar>() ?? shooter.AddComponent<PlayerWorldHpBar>();
+        Assign(bar, ("fill", fill.transform), ("valueText", tmp));
+
+        // 캔버스 슬라이더 은퇴 (오브젝트 비활성 — enum/리스트는 무해하게 유지)
+        var canvasBar = GameObject.Find("PlayerHpSlider");
+        if (canvasBar != null) canvasBar.SetActive(false);
+
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        Debug.Log("[InGameUIBuilder] 플레이어 월드 HP바 조립 완료 (캔버스 슬라이더 비활성) — 씬 저장하세요");
+    }
+
     // 전투 정보 창 조립 (원작 #57) — SafeAreaPanel 아래 패널 생성 + 행 7개 + 참조 자동 할당
     [MenuItem("Tools/Build CombatInfo Panel")]
     public static void BuildCombatInfoPanel()
