@@ -484,6 +484,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MonsterHpBar
   barRoot: {fileID: 7100000000000001}
   fill: {fileID: 7100000000000007}
+  barY1x1: -0.635
+  barYTall: -1.1
 --- !u!1 &8521314312971259352
 GameObject:
   m_ObjectHideFlags: 0
