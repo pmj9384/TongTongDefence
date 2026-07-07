@@ -9,12 +9,11 @@ public class DamagePopup : MonoBehaviour
 {
     public event Action<DamagePopup> OnFinished;   // 풀 반환 신호
 
-    private const float Lifetime = 0.7f;
-    // 통통 튀는 포물선 (원작 관찰, 유저 확정 2026-07-07) — 위로 차올랐다 중력으로 살짝 떨어지며 사라짐.
-    // 좌우는 결정적 분산(damage 기반) — Random 없이도 겹친 팝업이 서로 갈라져 보이게
-    private const float LaunchUp = 1.7f;
-    private const float LaunchSide = 0.7f;
-    private const float Gravity = 5f;
+    private const float Lifetime = 0.6f;
+    // 원작(#82) 재확인: 몬스터 중앙 근처에서 "살짝만" 떠오르고 사라짐 — 포물선/하강 없음 (유저 정정 2026-07-07).
+    // 좌우 미세 분산(damage 기반 결정적)만 유지 — 겹친 팝업이 완전히 포개지지 않게
+    private const float RiseSpeed = 0.35f;
+    private const float SideSpread = 0.12f;
 
     private TMP_Text text;
     private float timer;
@@ -31,15 +30,14 @@ public class DamagePopup : MonoBehaviour
         text.color = isCritical ? new Color(1f, 0.3f, 0.25f) : Color.white;
         transform.localScale = Vector3.one * (isCritical ? 1.4f : 1f);   // 치명타 강조
 
-        // 데미지 값으로 좌우 방향을 결정적으로 분산 (-1~1) — 같은 프레임 다발 팝업이 부채꼴로 퍼짐
+        // 데미지 값으로 좌우 방향을 결정적으로 미세 분산 (-1~1)
         float side = ((damage * 7919) % 200) / 100f - 1f;
-        velocity = new Vector3(side * LaunchSide, LaunchUp, 0f);
+        velocity = new Vector3(side * SideSpread, RiseSpeed, 0f);
     }
 
     private void Update()
     {
-        velocity.y -= Gravity * Time.deltaTime;   // 포물선 — 정점 찍고 살짝 낙하
-        transform.position += velocity * Time.deltaTime;
+        transform.position += velocity * Time.deltaTime;   // 살짝 상승만 (원작 #82)
 
         timer -= Time.deltaTime;
         text.alpha = Mathf.Clamp01(timer / Lifetime * 2f);   // 후반부에 빠르게 사라짐

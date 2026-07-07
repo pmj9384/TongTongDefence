@@ -17,7 +17,7 @@ public class SkillManager : InGameManager
     private readonly System.Random rng = new();
     private int pendingDrafts;                              // 연속 레벨업 시 3택지를 연달아 띄우기 위한 큐
 
-    [SerializeField] private int initialNormalBalls = 4;   // 시작 노멀볼 수 [원작 관찰: 4발] — 튜닝 노출
+    [SerializeField] private int initialNormalBalls = 5;   // 시작 노멀볼 수 (원작 재확인: 5발 — 2026-07-07 정정)
 
     // 발사 볼 인벤토리 — 보유 볼 각각이 개체 (필드에 나가 있거나 대기). 규칙은 BallInventory(순수 코어) 몫
     private BallInventory ballInventory;
