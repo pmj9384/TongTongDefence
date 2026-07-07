@@ -461,7 +461,7 @@ public static class InGameUIBuilder
     {
         foreach (Transform old in bottomBar) if (old.name == "PlayerHpSlider") { Object.DestroyImmediate(old.gameObject); break; }
 
-        var root = Child(bottomBar, "PlayerHpSlider", C, new(0, 15), new(210, 28));   // 원작 #84: 캐릭터 발밑의 작은 캡슐형
+        var root = Child(bottomBar, "PlayerHpSlider", C, new(32, 250), new(210, 36));   // 원작 #84 캡슐 — 유저 Play 튜닝값 박제 (2026-07-07)
         var slider = root.gameObject.AddComponent<Slider>();
         var bg = Image(root, "Background", new Color(0.08f, 0.08f, 0.08f, 0.9f), C, Vector2.zero, Vector2.zero);
         Stretch(bg.rectTransform);
