@@ -1,17 +1,15 @@
 // BGM 클립 ID - 프로젝트마다 여기에 추가
 public enum BgmClipId
 {
-    // TODO: 게임 BGM 추가
-    // IngameBGM,
+    IngameBGM,
 }
 
 // SFX 클립 ID - 프로젝트마다 여기에 추가
 public enum SfxClipId
 {
     None,
-    // TODO: 게임 SFX 추가
-    // ButtonClick,
-    // Footstep,
+    BallBounce,   // 볼 벽 튕김
+    BallHit,      // 볼 몬스터 타격
 }
 
 public enum SkinGrade

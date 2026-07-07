@@ -38,9 +38,15 @@ public class Shooter : MonoBehaviour
     {
         if (inputHandler == null) return;
 
+        // 조준선은 항상 Tick — 자체 상태 가드가 정지 시 점/레티클 숨김을 담당 (스킵하면 박제됨)
+        aimer.Tick(direction);
+
+        // GamePlay가 아니면 입력·발사·캐릭터 회전 정지 — 일시정지/스킬 선택 중 캐릭터가 입력 따라 돌던 버그
+        if (ballManager.CurrentGameState != GameManager.GameState.GamePlay)
+            return;
+
         inputHandler.Tick();
         shooter.Tick(Time.deltaTime, direction);
-        aimer.Tick(direction);
         if (visual != null) visual.SetAim(direction);
     }
 }
