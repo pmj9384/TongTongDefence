@@ -275,12 +275,12 @@ public static class InGameUIBuilder
         hud.transform.SetParent(topBar, false);
         Stretch((RectTransform)hud.transform);
 
-        Text(hud.transform, "StageName", "1. 깊은 숲", 42, new(0.5f, 1f), new(0, -176), new(520, 54), bold: true);   // 유저 Play 튜닝 확정 (2026-07-07)
+        Text(hud.transform, "StageName", "1. 깊은 숲", 42, new(0.5f, 1f), new(0, -32), new(520, 54), bold: true);
 
-        Image(hud.transform, "ProgressBorder", new Color(0.85f, 0.8f, 0.7f, 0.9f), new(0.5f, 1f), new(0, -219), new(464, 30));   // 테두리 2px — 별개 바처럼 안 보이게
+        Image(hud.transform, "ProgressBorder", new Color(0.85f, 0.8f, 0.7f, 0.9f), new(0.5f, 1f), new(0, -78), new(464, 30));   // 테두리 2px
         var pSlider = SliderGauge(hud.transform, "ProgressSlider", new Color(0.85f, 0.22f, 0.18f),
                                   new(0.5f, 1f), new(0, -66), new(400, 22));
-        var pText = Text(hud.transform, "ProgressText", "0%", 22, new(0.5f, 1f), new(0, -219), new(460, 30), bold: true);
+        var pText = Text(hud.transform, "ProgressText", "0%", 22, new(0.5f, 1f), new(0, -78), new(460, 30), bold: true);
 
         // 레벨 게이지: 중앙 고정폭 + 굵게 + 우측 끝 배지 (원작 #35 — 스트레치 앵커 폐기: 화면 폭 따라 길어지던 문제)
         var lSlider = SliderGauge(hud.transform, "LevelSlider", new Color(0.95f, 0.6f, 0.15f),
@@ -383,12 +383,12 @@ public static class InGameUIBuilder
         // 열리는 순간 = 게이지가 꽉 찬 순간이므로 값은 고정 1 (유저 확정 2026-07-07)
         // 위치는 HUD 레벨바와 "같은 top 픽셀 앵커" — 비율 앵커(F)를 쓰면 화면 높이에 따라 어긋난다 (실사례)
         Vector2 topAnchor = new(0.5f, 1f);
-        Text(overlay, "Title", "레벨 업", 64, topAnchor, new(0, -230), new(500, 80), bold: true, color: new Color(1f, 0.92f, 0.8f));
-        var bar = SliderGauge(overlay, "LevelBar", new Color(0.9f, 0.25f, 0.15f), topAnchor, new(-30, -300), new(560, 30));   // HUD 바와 동일 (유저 확정)
+        Text(overlay, "Title", "레벨 업", 64, topAnchor, new(0, -195), new(500, 80), bold: true, color: new Color(1f, 0.92f, 0.8f));
+        var bar = SliderGauge(overlay, "LevelBar", new Color(0.9f, 0.25f, 0.15f), topAnchor, new(-30, -125), new(560, 30));   // HUD 바와 동일 좌표 (겹침)
         bar.value = 1f;
-        var badgeBg = Image(overlay, "LevelBadgeBg", new Color(0.75f, 0.15f, 0.1f), topAnchor, new(285, -300), new(56, 56));
+        var badgeBg = Image(overlay, "LevelBadgeBg", new Color(0.75f, 0.15f, 0.1f), topAnchor, new(285, -125), new(56, 56));
         badgeBg.rectTransform.localRotation = Quaternion.Euler(0, 0, 45);
-        var badge = Text(overlay, "LevelBadge", "2", 34, topAnchor, new(285, -300), new(70, 50), bold: true);
+        var badge = Text(overlay, "LevelBadge", "2", 34, topAnchor, new(285, -125), new(70, 50), bold: true);
 
         // 보유 스킬 슬롯 — Active 4 + Passive 2 (원작 배치)
         Text(overlay, "ActiveLabel", "Active Skill", 28, topAnchor, new(-330, -400), new(260, 36), bold: true, color: new Color(1f, 0.7f, 0.6f));
