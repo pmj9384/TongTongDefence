@@ -7604,7 +7604,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerManager
   maxHealth: 300
   playerTransform: {fileID: 818008312}
-  dropBelowField: 0.25
+  dropBelowField: 0.35
 --- !u!1 &818050001
 GameObject:
   m_ObjectHideFlags: 0
@@ -17103,7 +17103,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameUIManager
   uiElements:
   - {fileID: 818060003}
-  - {fileID: 0}
   - {fileID: 818050003}
   - {fileID: 818060013}
   - {fileID: 1742878562}
