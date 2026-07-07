@@ -91,14 +91,15 @@ public class SkillSelectionPanel : MonoBehaviour
         overlay.SetActive(true);
     }
 
-    // 보유 레벨만큼 밝은 노랑, 미보유(0렙)는 첫 칸만 어두운 노랑(선택 프리뷰), 나머지 어둡게
+    // 다이아 = "현재 보유 레벨" (유저 확정): 1렙=1개, 2렙=2개, 3렙=3개 밝은 노랑.
+    // 미보유(0렙)만 첫 칸 어두운 노랑 — 고르면 그 자리가 밝게 켜지는 프리뷰
     private void SetDiamonds(int card, int currentLevel, int showLevel)
     {
         for (int k = 0; k < 3; k++)
         {
             Color c = DiaOff;
-            if (currentLevel == 0) c = k == 0 ? DiaPreview : DiaOff;
-            else if (k < showLevel) c = DiaOn;
+            if (currentLevel == 0 && k == 0) c = DiaPreview;
+            else if (k < currentLevel) c = DiaOn;
             diamonds[card * 3 + k].color = c;
         }
     }
