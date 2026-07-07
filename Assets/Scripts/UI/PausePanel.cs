@@ -51,14 +51,11 @@ public class PausePanel : UIElement
         foreach (SkillId id in skills.Owned(kind))
         {
             if (i >= slots.Count) break;
+            slots[i].enabled = true;
             slots[i].sprite = Resources.Load<Sprite>(skills.Table[id].iconName);
-            slots[i].color = Color.white;
             i++;
         }
-        for (; i < slots.Count; i++)   // 빈 슬롯은 어둡게
-        {
-            slots[i].sprite = null;
-            slots[i].color = new Color(0.05f, 0.05f, 0.06f);
-        }
+        for (; i < slots.Count; i++)   // 빈 슬롯 = 아이콘 숨김 (어두운 안판이 보임 — 선택창과 동일 문법)
+            slots[i].enabled = false;
     }
 }

@@ -534,10 +534,13 @@ public static class InGameUIBuilder
         return img;
     }
 
+    // 선택창 SlotIcon과 동일 문법 (2026-07-07 통일): 색은 테두리만, 안은 어둡게 (#85)
     private static Image Slot(Transform parent, string name, Color frame, Vector2 pos)
     {
         var frameImg = Image(parent, name, frame, F(0.60f), pos, new(116, 116));
-        var icon = Image(frameImg.transform, "Icon", new Color(0.05f, 0.05f, 0.06f), C, Vector2.zero, new(104, 104), sprite: false);
+        Image inner = Image(frameImg.transform, "Inner", new Color(0.06f, 0.05f, 0.05f, 0.98f), C, Vector2.zero, new(104, 104));
+        var icon = Image(inner.transform, "Icon", Color.white, C, Vector2.zero, new(94, 94), sprite: false);
+        icon.enabled = false;
         return icon;
     }
 
