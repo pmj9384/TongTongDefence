@@ -172,7 +172,7 @@ public static class InGameUIBuilder
         Debug.Log("[InGameUIBuilder] CombatInfoPanel 조립 완료 — Generate UIElement Enum 실행 후 씬 저장");
     }
 
-    // 캐릭터 파츠 조립(조준 연출용) + PlayerHpBar 컴포넌트를 UI 오브젝트로 이사
+    // 캐릭터 파츠 조립(조준 연출용)
     [MenuItem("Tools/Build Shooter Parts + Move HpBar")]
     public static void BuildShooterParts()
     {
@@ -226,17 +226,6 @@ public static class InGameUIBuilder
         var shooterSo = new SerializedObject(shooter);
         shooterSo.FindProperty("visual").objectReferenceValue = sv;
         shooterSo.ApplyModifiedProperties();
-
-        // PlayerHpBar 이사: Shooter → PlayerHpSlider (직렬화 값 복사 후 원본 제거)
-        var oldBar = shooter.GetComponent<PlayerHpBar>();
-        var sliderGo = GameObject.Find("PlayerHpSlider");
-        if (oldBar != null && sliderGo != null && sliderGo.GetComponent<PlayerHpBar>() == null)
-        {
-            var newBar = sliderGo.AddComponent<PlayerHpBar>();
-            EditorUtility.CopySerialized(oldBar, newBar);
-            Object.DestroyImmediate(oldBar);
-            Debug.Log("[InGameUIBuilder] PlayerHpBar → PlayerHpSlider 이사 완료");
-        }
 
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         Debug.Log("[InGameUIBuilder] 캐릭터 파츠 조립 완료 — Head/WeaponPivot 위치를 Scene 뷰에서 눈튜닝 후 저장");
