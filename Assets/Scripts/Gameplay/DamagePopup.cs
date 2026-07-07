@@ -13,7 +13,7 @@ public class DamagePopup : MonoBehaviour
     // 원작(#82) 재확인: 몬스터 중앙 근처에서 "살짝만" 떠오르고 사라짐 — 포물선/하강 없음 (유저 정정 2026-07-07).
     // 좌우 미세 분산(damage 기반 결정적)만 유지 — 겹친 팝업이 완전히 포개지지 않게
     private const float RiseSpeed = 0.15f;
-    private const float SideSpread = 0.12f;
+    private static readonly Vector2 SpawnJitter = new(0.14f, 0.09f);   // 중앙 "주변" 좁은 랜덤 (원작 #82 — 연출용이라 Random 허용)
 
     private TMP_Text text;
     private float timer;
@@ -23,16 +23,16 @@ public class DamagePopup : MonoBehaviour
 
     public void Show(Vector3 position, int damage, bool isCritical)
     {
-        transform.position = position;
+        // 정중앙 고정 대신 좁은 지터 — 연타 시 숫자가 완전히 포개지지 않으면서도 몬스터를 벗어나지 않게
+        transform.position = position + new Vector3(
+            Random.Range(-SpawnJitter.x, SpawnJitter.x), Random.Range(-SpawnJitter.y, SpawnJitter.y), 0f);
         timer = Lifetime;
 
         text.text = damage.ToString();
         text.color = isCritical ? new Color(1f, 0.3f, 0.25f) : Color.white;
         transform.localScale = Vector3.one * (isCritical ? 1.4f : 1f);   // 치명타 강조
 
-        // 데미지 값으로 좌우 방향을 결정적으로 미세 분산 (-1~1)
-        float side = ((damage * 7919) % 200) / 100f - 1f;
-        velocity = new Vector3(side * SideSpread, RiseSpeed, 0f);
+        velocity = new Vector3(0f, RiseSpeed, 0f);   // 이동은 위로 살짝만 — 분산은 스폰 지터가 담당
     }
 
     private void Update()
