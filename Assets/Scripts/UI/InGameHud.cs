@@ -44,8 +44,8 @@ public class InGameHud : UIElement
         if (levelSlider.gameObject.activeSelf == selecting)
         {
             levelSlider.gameObject.SetActive(!selecting);
-            levelBadge.SetActive(!selecting);
             levelText.gameObject.SetActive(!selecting);
+            if (levelBadge != null) levelBadge.SetActive(!selecting);   // 배선 전이어도 나머지는 동작
         }
 
         // 진행도 = 처치 누계 ÷ 전체 몬스터 수 (ResultPanel의 Fail 지표와 같은 정의)
