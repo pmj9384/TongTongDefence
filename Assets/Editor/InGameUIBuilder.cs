@@ -503,7 +503,7 @@ public static class InGameUIBuilder
     {
         foreach (Transform old in bottomBar) if (old.name == "PlayerHpSlider") { Object.DestroyImmediate(old.gameObject); break; }
 
-        var root = Child(bottomBar, "PlayerHpSlider", C, new(32, 250), new(210, 36));   // 원작 #84 캡슐 — 유저 Play 튜닝값 박제 (2026-07-07)
+        var root = Child(bottomBar, "PlayerHpSlider", C, new(0, 40), new(210, 36));   // BottomBar 화면 고정 — 캐릭터(월드) 추종은 화면비마다 어긋남 (실기기 확인 2026-07-07)
         var slider = root.gameObject.AddComponent<Slider>();
         var bg = Image(root, "Background", new Color(0.08f, 0.08f, 0.08f, 0.9f), C, Vector2.zero, Vector2.zero);
         Stretch(bg.rectTransform);
