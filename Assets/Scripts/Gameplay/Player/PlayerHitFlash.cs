@@ -21,11 +21,12 @@ public class PlayerHitFlash : MonoBehaviour
     // 매니저 Initialize(GameManager.Awake) 완료 후 구독 (관례)
     private void Start()
     {
-        // HP바(HpBar 하위)는 제외 — 캐릭터 몸통만 점멸. HP바까지 훑으면 유색 바가 흰색으로 덮임
+        // HP바(HpBar 하위)만 제외 — 캐릭터 몸통(Body/Head/Weapon)은 점멸시킴.
+        // HP바까지 훑으면 유색 바(초록/검정)가 흰색으로 덮이던 버그
         var all = GetComponentsInChildren<SpriteRenderer>(true);
         var list = new System.Collections.Generic.List<SpriteRenderer>();
         foreach (SpriteRenderer sr in all)
-            if (sr.GetComponentInParent<PlayerWorldHpBar>() == null && !IsUnderHpBar(sr.transform))
+            if (!IsUnderHpBar(sr.transform))
                 list.Add(sr);
         parts = list.ToArray();
         baseColors = new Color[parts.Length];
