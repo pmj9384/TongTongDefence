@@ -11,6 +11,7 @@ public class InGameHud : UIElement
     [SerializeField] private Slider progressSlider;   // 진행도 게이지 (핸들 없는 Slider — HP와 방식 통일)
     [SerializeField] private TMP_Text progressText;   // "N%"
     [SerializeField] private Slider levelSlider;      // 레벨(킬) 게이지
+    [SerializeField] private GameObject levelBadge;   // ◆ 다이아 (선택창 동안 함께 숨김)
     [SerializeField] private TMP_Text levelText;      // "Lv.N"
     [SerializeField] private Button pauseButton;
 
@@ -37,6 +38,15 @@ public class InGameHud : UIElement
         var skillManager = gameManager.SkillManager;
         var waveManager = gameManager.WaveManager;
         if (skillManager == null || skillManager.PlayerLevel == null) return;
+
+        // 스킬 선택 동안 HUD 레벨 UI 숨김 — 선택창의 꽉 찬 바가 그 자리를 대신함 (유저 확정: 겹침 대신 교대)
+        bool selecting = gameManager.CurrentState == GameManager.GameState.SkillSelection;
+        if (levelSlider.gameObject.activeSelf == selecting)
+        {
+            levelSlider.gameObject.SetActive(!selecting);
+            levelBadge.SetActive(!selecting);
+            levelText.gameObject.SetActive(!selecting);
+        }
 
         // 진행도 = 처치 누계 ÷ 전체 몬스터 수 (ResultPanel의 Fail 지표와 같은 정의)
         int total = waveManager.TotalMonsterCount;

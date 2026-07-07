@@ -194,7 +194,7 @@ public class SkillManager : InGameManager
     }
 
     private Coroutine openDelay;
-    private const float SelectionOpenDelay = 0.6f;   // 게이지 채움 연출 시간 (InGameHud.gaugeFillSpeed와 감각 맞춤)
+    private const float SelectionOpenDelay = 0.35f;  // 게이지 채움 연출 시간 — 0.6은 "한 템포 늦음"으로 체감 (유저 2026-07-07)
 
     private System.Collections.IEnumerator OpenSelectionAfterGaugeFill()
     {

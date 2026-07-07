@@ -292,7 +292,7 @@ public static class InGameUIBuilder
         var pauseBtn = ButtonBox(hud.transform, "PauseButton", "II", 38, new Color(0.15f, 0.16f, 0.2f, 0.9f), new(1, 1), new(-52, -48), new(84, 84));
 
         Assign(hud, ("progressSlider", pSlider), ("progressText", pText), ("levelSlider", lSlider),
-                    ("levelText", lText), ("pauseButton", pauseBtn));
+                    ("levelBadge", badge.gameObject), ("levelText", lText), ("pauseButton", pauseBtn));
     }
 
     // 핸들 없는 게이지 Slider — HP Slider(BuildHpSlider)와 동일 구조
