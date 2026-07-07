@@ -397,7 +397,9 @@ public static class InGameUIBuilder
 
         // 세로 카드 3장 (원작 비율)
         var buttons = new Button[3]; var icons = new Image[3];
-        var names = new TMP_Text[3]; var levels = new TMP_Text[3]; var descs = new TMP_Text[3];
+        var names = new TMP_Text[3]; var descs = new TMP_Text[3];
+        var damages = new TMP_Text[3]; var damageBadges = new GameObject[3];
+        var diamonds = new Image[9];
         for (int i = 0; i < 3; i++)
         {
             var card = Image(overlay, $"Card{i}", new Color(0.32f, 0.18f, 0.18f, 0.97f), C, new((i - 1) * 330, -140), new(310, 720));
@@ -408,8 +410,21 @@ public static class InGameUIBuilder
             names[i] = Text(card.transform, "Name", "", 40, C, new(0, 280), new(290, 52), bold: true);
             icons[i] = Image(card.transform, "Icon", Color.white, C, new(0, 130), new(170, 170), sprite: false);
             icons[i].preserveAspect = true;
-            levels[i] = Text(card.transform, "Level", "", 28, C, new(0, 5), new(290, 38), color: new Color(1f, 0.85f, 0.4f));
+
+            // 데미지 뱃지 (원작 #73: 설명 바로 위 ★숫자) — 패시브 카드는 코드에서 숨김
+            var badgeBg2 = Image(card.transform, "DamageBadge", new Color(0.16f, 0.09f, 0.09f, 0.95f), C, new(0, 10), new(150, 46));
+            damages[i] = Text(badgeBg2.transform, "Value", "★ 0", 30, C, Vector2.zero, new(150, 46), bold: true, color: new Color(1f, 0.85f, 0.4f));
+            damageBadges[i] = badgeBg2.gameObject;
+
             descs[i] = Text(card.transform, "Description", "", 28, C, new(0, -140), new(260, 240), color: new Color(0.95f, 0.9f, 0.85f));
+
+            // 하단 레벨 다이아 3개 (원작 #73: 현재 레벨만큼 노랑)
+            for (int k = 0; k < 3; k++)
+            {
+                var dia = Image(card.transform, $"Dia{k}", new Color(0.12f, 0.08f, 0.08f), C, new((k - 1) * 56, -310), new(34, 34));
+                dia.rectTransform.localRotation = Quaternion.Euler(0, 0, 45);
+                diamonds[i * 3 + k] = dia;
+            }
         }
 
         Assign(panel, ("overlay", overlay.gameObject), ("levelBadge", badge));
@@ -418,16 +433,19 @@ public static class InGameUIBuilder
         AssignArray(panel, "buttons", buttons);
         AssignArray(panel, "icons", icons);
         AssignArray(panel, "names", names);
-        AssignArray(panel, "levels", levels);
         AssignArray(panel, "descriptions", descs);
+        AssignArray(panel, "damages", damages);
+        AssignArray(panel, "damageBadges", damageBadges);
+        AssignArray(panel, "diamonds", diamonds);
         overlay.gameObject.SetActive(false);
     }
 
-    // 보유 슬롯 한 칸 — 프레임(색 유지) + 아이콘(스킬 채움/빈 칸은 비활성)
+    // 보유 슬롯 한 칸 — 색은 "테두리만", 안쪽 면은 어둡게 (원작 #74, 유저 확정)
     private static Image SlotIcon(Transform parent, string name, Color frame, Vector2 pos)
     {
         Image frameImg = Image(parent, name, frame, F(0.74f), pos, new(84, 84));
-        var icon = Image(frameImg.transform, "Icon", Color.white, C, Vector2.zero, new(70, 70), sprite: false);
+        Image inner = Image(frameImg.transform, "Inner", new Color(0.06f, 0.05f, 0.05f, 0.98f), C, Vector2.zero, new(72, 72));
+        var icon = Image(inner.transform, "Icon", Color.white, C, Vector2.zero, new(64, 64), sprite: false);
         icon.preserveAspect = true;
         icon.enabled = false;
         return icon;
