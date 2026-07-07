@@ -378,18 +378,22 @@ public static class InGameUIBuilder
     {
         Clear(panel.transform);
         var overlay = Overlay(panel.transform, 0.8f);
-        // 오버레이가 상단 HUD(레벨 바)를 가리지 않게 — 바는 HUD 것 하나를 재사용 (꽉 차면 빨강, 유저 확정)
-        var overlayRect = (RectTransform)overlay;
-        overlayRect.offsetMax = new Vector2(0, -150);
 
+        // 상단: 레벨 업 + 꽉 찬 빨간 바 + 레벨 배지 — HUD 게이지와 같은 데이터(레벨)의 다른 뷰.
+        // 열리는 순간 = 게이지가 꽉 찬 순간이므로 값은 고정 1 (유저 확정 2026-07-07)
         Text(overlay, "Title", "레벨 업", 64, F(0.94f), Vector2.zero, new(500, 80), bold: true, color: new Color(1f, 0.92f, 0.8f));
+        var bar = SliderGauge(overlay, "LevelBar", new Color(0.9f, 0.25f, 0.15f), F(0.885f), new(-30, 0), new(560, 30));
+        bar.value = 1f;
+        var badgeBg = Image(overlay, "LevelBadgeBg", new Color(0.75f, 0.15f, 0.1f), F(0.885f), new(285, 0), new(56, 56));
+        badgeBg.rectTransform.localRotation = Quaternion.Euler(0, 0, 45);
+        var badge = Text(overlay, "LevelBadge", "2", 34, F(0.885f), new(285, 0), new(70, 50), bold: true);
 
         // 보유 스킬 슬롯 — Active 4 + Passive 2 (원작 배치)
         Text(overlay, "ActiveLabel", "액티브", 26, F(0.80f), new(-250, 0), new(200, 34), color: new Color(1f, 0.7f, 0.6f));
         Text(overlay, "PassiveLabel", "패시브", 26, F(0.80f), new(250, 0), new(200, 34), color: new Color(0.6f, 0.95f, 0.9f));
         var actives = new Image[4]; var passives = new Image[2];
         for (int i = 0; i < 4; i++) actives[i] = SlotIcon(overlay, $"ActiveSlot{i}", new Color(0.45f, 0.2f, 0.2f, 0.9f), new(-355 + i * 95, 0));
-        for (int i = 0; i < 2; i++) passives[i] = SlotIcon(overlay, $"PassiveSlot{i}", new Color(0.15f, 0.4f, 0.38f, 0.9f), new(205 + i * 95, 0));
+        for (int i = 0; i < 2; i++) passives[i] = SlotIcon(overlay, $"PassiveSlot{i}", new Color(0.2f, 0.52f, 0.25f, 0.9f), new(205 + i * 95, 0));   // 패시브 = 초록 (유저 확정)
 
         // 세로 카드 3장 (원작 비율)
         var buttons = new Button[3]; var icons = new Image[3];
@@ -408,7 +412,7 @@ public static class InGameUIBuilder
             descs[i] = Text(card.transform, "Description", "", 28, C, new(0, -140), new(260, 240), color: new Color(0.95f, 0.9f, 0.85f));
         }
 
-        Assign(panel, ("overlay", overlay.gameObject));
+        Assign(panel, ("overlay", overlay.gameObject), ("levelBadge", badge));
         AssignArray(panel, "activeSlots", actives);
         AssignArray(panel, "passiveSlots", passives);
         AssignArray(panel, "buttons", buttons);

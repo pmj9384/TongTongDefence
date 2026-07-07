@@ -218,7 +218,7 @@ public class SkillManager : InGameManager
         }
 
         GameManager.SetGameState(GameManager.GameState.SkillSelection);
-        selectionPanel.Show(cards, playerSkills, HandleCardPicked);
+        selectionPanel.Show(cards, playerSkills, playerLevel.Level, HandleCardPicked);
     }
 
     private void HandleCardPicked(SkillId picked)
