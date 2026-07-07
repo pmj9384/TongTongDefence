@@ -20,6 +20,10 @@ public class SkillSelectionPanel : MonoBehaviour
     [SerializeField] private TMP_Text[] levels;
     [SerializeField] private TMP_Text[] descriptions;
 
+    // 카드 배경 — 액티브 팥색 / 패시브 초록 (원작 퍼즈 창 색 대조, 유저 확정)
+    private static readonly Color ActiveCardColor = new(0.32f, 0.18f, 0.18f, 0.97f);
+    private static readonly Color PassiveCardColor = new(0.14f, 0.32f, 0.22f, 0.97f);
+
     private Action<SkillId> onPicked;
     private List<SkillId> currentCards;
 
@@ -49,6 +53,7 @@ public class SkillSelectionPanel : MonoBehaviour
 
             if (cards[i] == SkillId.NormalBall)   // 채움 카드 — 테이블에 없음, 고정 표기
             {
+                buttons[i].image.color = ActiveCardColor;
                 icons[i].sprite = Resources.Load<Sprite>("Sprites/Balls/Ball_Nomal_Ball");
                 names[i].text = "노멀 볼";
                 levels[i].text = "볼 +1";
@@ -59,6 +64,7 @@ public class SkillSelectionPanel : MonoBehaviour
             SkillDef def = owned.Table[cards[i]];
             int showLevel = owned.GetLevel(cards[i]) + 1;   // 미보유=Lv1, 보유=현재+1
             string kindTag = def.kind == SkillKind.ActiveBall ? "액티브" : "패시브";
+            buttons[i].image.color = def.kind == SkillKind.ActiveBall ? ActiveCardColor : PassiveCardColor;
 
             icons[i].sprite = Resources.Load<Sprite>(def.iconName);
             names[i].text = def.displayName;
