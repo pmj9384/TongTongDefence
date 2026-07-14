@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using UnityEngine;
 
@@ -7,8 +6,6 @@ using UnityEngine;
 // 빈 행도 패턴의 일부(그룹 간격). 클리어 = 행 소진 + 필드 전멸. 전멸해도 다음 행은 제 박자에 온다 [가정].
 public class WaveManager : InGameManager
 {
-    public event Action OnWaveAllClear;
-
     // 진행도(처치 비율)의 분모 — 패턴의 총 유닛 수 (멀티셀도 1유닛)
     public int TotalMonsterCount => pattern.TotalUnits;
 
@@ -29,7 +26,6 @@ public class WaveManager : InGameManager
         var csv = Resources.Load<TextAsset>("Tables/StagePattern");
         pattern = StagePattern.Parse(csv.text, GameManager.FieldManager.Columns);   // 엄격 파서 — 오염 즉시 예외
 
-        monsterManager.OnFieldCleared += HandleFieldCleared;
         GameManager.AddGameStateEnterAction(GameManager.GameState.GamePlay, TryStart);
     }
 
@@ -37,7 +33,6 @@ public class WaveManager : InGameManager
     {
         base.Clear();
         StopAllCoroutines();
-        monsterManager.OnFieldCleared -= HandleFieldCleared;
         GameManager.RemoveGameStateEnterAction(GameManager.GameState.GamePlay, TryStart);
     }
 
@@ -61,22 +56,15 @@ public class WaveManager : InGameManager
         float interval = GameManager.FieldManager.CellHeight / monsterManager.MoveSpeed;
         var wait = new WaitForSeconds(interval);
 
-        while (nextRow < pattern.Rows.Count)
+        // 무한 모드: CSV를 순환(% Count)해 끝없이 공급. nextRow는 시작부터의 누적 행 번호라
+        // RowHp(nextRow)가 한 바퀴마다 계속 커진다 — 체력 점증이 인덱싱만으로 자동으로 붙는다.
+        while (true)
         {
             yield return wait;
-            monsterManager.SpawnRow(pattern.Rows[nextRow], RowHp(nextRow));
+            monsterManager.SpawnRow(pattern.Rows[nextRow % pattern.Rows.Count], RowHp(nextRow));
             nextRow++;
         }
     }
 
     private int RowHp(int rowIndex) => baseHp + rowIndex * hpPerRow;
-
-    // 필드 전멸 — 행이 남아 있으면 무시 (다음 행이 제 박자에 옴), 소진됐으면 클리어
-    private void HandleFieldCleared()
-    {
-        if (nextRow < pattern.Rows.Count) return;
-
-        OnWaveAllClear?.Invoke();
-        GameManager.SetGameState(GameManager.GameState.GameClear);
-    }
 }
