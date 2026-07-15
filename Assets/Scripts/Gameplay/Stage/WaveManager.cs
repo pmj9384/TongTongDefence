@@ -12,11 +12,14 @@ public class WaveManager : InGameManager
     [SerializeField] private int initialRows = 5;      // 시작 일괄 스폰 행 수 (원작 관찰)
     [SerializeField] private int baseHp = 30;          // 행 HP = baseHp + 행번호 × hpPerRow [튜닝]
     [SerializeField] private int hpPerRow = 10;
+    [SerializeField] private int bossWaveInterval = 20; // 몇 웨이브마다 보스 관문인지 (설계 §2-③)
 
     private StagePattern pattern;
     private MonsterManager monsterManager;
     private int nextRow;
     private bool hasStarted;
+    private Monster currentBoss;   // 진행 중 보스 — 격파 신호 대조용
+    private bool bossAlive;
 
     public override void Initialize()
     {
@@ -26,6 +29,7 @@ public class WaveManager : InGameManager
         var csv = Resources.Load<TextAsset>("Tables/StagePattern");
         pattern = StagePattern.Parse(csv.text, GameManager.FieldManager.Columns);   // 엄격 파서 — 오염 즉시 예외
 
+        monsterManager.OnMonsterKilled += HandleMonsterKilled;   // 보스 격파 감지 → 컨베이어 재개
         GameManager.AddGameStateEnterAction(GameManager.GameState.GamePlay, TryStart);
     }
 
@@ -33,6 +37,7 @@ public class WaveManager : InGameManager
     {
         base.Clear();
         StopAllCoroutines();
+        monsterManager.OnMonsterKilled -= HandleMonsterKilled;
         GameManager.RemoveGameStateEnterAction(GameManager.GameState.GamePlay, TryStart);
     }
 
@@ -61,9 +66,27 @@ public class WaveManager : InGameManager
         while (true)
         {
             yield return wait;
-            monsterManager.SpawnRow(pattern.Rows[nextRow % pattern.Rows.Count], RowHp(nextRow));
+            if (nextRow > 0 && nextRow % bossWaveInterval == 0)
+                yield return BossWave();   // 보스 관문 — 격파까지 줄 스폰 멈춤
+            else
+                monsterManager.SpawnRow(pattern.Rows[nextRow % pattern.Rows.Count], RowHp(nextRow));
             nextRow++;
         }
+    }
+
+    // 보스 관문: 줄 스폰을 멈추고 보스 격파까지 대기. 소환·지속공격은 BossController→MonsterManager가 처리하므로
+    // 여기선 "정지 + 격파 감시"만 한다 (두 스폰 소스가 동시에 안 돌아 CSV 컨베이어와 겹치지 않음).
+    private IEnumerator BossWave()
+    {
+        currentBoss = monsterManager.SpawnBoss(RowHp(nextRow));
+        bossAlive = true;
+        while (bossAlive)
+            yield return null;
+    }
+
+    private void HandleMonsterKilled(Monster monster)
+    {
+        if (monster == currentBoss) { bossAlive = false; currentBoss = null; }
     }
 
     private int RowHp(int rowIndex) => baseHp + rowIndex * hpPerRow;

@@ -887,6 +887,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterManager
   monsterPrefab: {fileID: 2798252329521943894, guid: 052a9cfa7b82b4e38a13ed9635fee4e1, type: 3}
+  bossPrefab: {fileID: 2798252329521943894, guid: c17c433d6a014283b6d8fc48d86bca0a, type: 3}
   damagePopupPrefab: {fileID: 2443922786207449817, guid: b877207d77da14e5b954fcb7ef059597, type: 3}
   moveSpeed: 0.15
   types:
@@ -918,6 +919,15 @@ MonoBehaviour:
   chargeSpeed: 4
   chargeDelay: 3
   topSpawnRowOffset: 1
+  bossType:
+    typeName: Boss
+    bodySprite: {fileID: -6248741079362886434, guid: f4b2d9e52b09e4283964cb125233ed4f, type: 3}
+    blockSprite: {fileID: 8578692014222664102, guid: b0f65537f57e5447c8e0ed60711b483b, type: 3}
+    hpMultiplier: 15
+    width: 2
+    height: 2
+  bossTickDamage: 50
+  summonAddHp: 30
 --- !u!4 &77163905
 Transform:
   m_ObjectHideFlags: 0
@@ -6244,6 +6254,7 @@ MonoBehaviour:
   initialRows: 5
   baseHp: 30
   hpPerRow: 10
+  bossWaveInterval: 20
 --- !u!4 &740948533
 Transform:
   m_ObjectHideFlags: 0
