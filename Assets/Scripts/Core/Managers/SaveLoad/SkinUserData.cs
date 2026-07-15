@@ -13,7 +13,7 @@ public class SkinUserData : ISaveLoad
     public string EquippedSkinId => equippedSkinId;
 
     public Sprite GetEquippedSprite() =>
-        Resources.Load<Sprite>($"Sprites/Skins/{equippedSkinId}");
+        SkinSprites.Load($"Skins/{equippedSkinId}");   // Addressables 전환 (이식 개조 2026-07-15)
 
     public event Action<string> OnSkinEquipped;
 

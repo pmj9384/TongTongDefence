@@ -1,10 +1,10 @@
 public enum UIElementEnums
 {
 	InGameHud,
+	BossHpSlider,
+	BossWarningText,
 	ResultPanel,
 	PausePanel,
 	CombatInfoPanel,
-	BossHpBar,
-	BossWarning,
 	SettingsPanel,
 }

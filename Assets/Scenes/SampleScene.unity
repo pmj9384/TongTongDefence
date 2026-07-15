@@ -9970,6 +9970,7 @@ GameObject:
   m_Component:
   - component: {fileID: 818009002}
   - component: {fileID: 818009003}
+  - component: {fileID: 2000000200}
   m_Layer: 0
   m_Name: Visual
   m_TagString: Untagged
@@ -23315,11 +23316,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameUIManager
   uiElements:
   - {fileID: 818060003}
+  - {fileID: 1303403810}
+  - {fileID: 961288708}
   - {fileID: 818050003}
   - {fileID: 818060013}
   - {fileID: 1742878562}
-  - {fileID: 1303403810}
-  - {fileID: 961288708}
   - {fileID: 2000000100}
 --- !u!4 &1730761526
 Transform:
@@ -28453,6 +28454,32 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &2000000100 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3548354221250835795, guid: 58c27aa2cebff4d01a0a9e56a6a64142, type: 3}
+  m_PrefabInstance: {fileID: 2018412486}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73f7c8a43c47e42559c224aa88e4124f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &2000000200
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 818009001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66aa95fde369c4a6a8ecef3fbdfd4361, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  headRenderer: {fileID: 1109300168}
+  bodyRenderer: {fileID: 667425037}
+  weaponRenderer: {fileID: 188222213}
 --- !u!21 &2000435052
 Material:
   serializedVersion: 8
@@ -31466,8 +31493,3 @@ SceneRoots:
   - {fileID: 143213360}
   - {fileID: 1186179712}
   - {fileID: 1907219764}
---- !u!114 &2000000100 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3548354221250835795, guid: 58c27aa2cebff4d01a0a9e56a6a64142, type: 3}
-  m_PrefabInstance: {fileID: 2018412486}
-  m_PrefabAsset: {fileID: 0}
