@@ -13,11 +13,15 @@ public class PausePanel : UIElement
     [SerializeField] private List<Image> passiveIcons;   // Passive 슬롯 2칸
     [SerializeField] private Button resumeButton;
     [SerializeField] private Button combatInfoButton;    // 전투 정보 창 열기 (#12)
+    [SerializeField] private Button settingsButton;      // 볼륨 설정창 (아웃게임 이식 SettingsPanel — 씬 수동 배치)
+    [SerializeField] private Button lobbyButton;         // 아웃게임(로비) 복귀 (씬 수동 배치)
 
     private void Awake()
     {
         resumeButton.onClick.AddListener(Resume);
         combatInfoButton.onClick.AddListener(OpenCombatInfo);
+        if (settingsButton != null) settingsButton.onClick.AddListener(OpenSettings);
+        if (lobbyButton != null) lobbyButton.onClick.AddListener(GoLobby);
     }
 
     // 전투 정보로 전환 — 상태는 GameStop 유지, 창만 교체 (닫으면 CombatInfoPanel이 퍼즈를 되연다)
@@ -25,6 +29,19 @@ public class PausePanel : UIElement
     {
         Hide();
         gameUIManager.ShowUIElement(UIElementEnums.CombatInfoPanel);
+    }
+
+    // 설정으로 전환 — CombatInfo와 동일 문법 (상태 GameStop 유지, 닫으면 SettingsPanel이 퍼즈를 되연다)
+    private void OpenSettings()
+    {
+        Hide();
+        gameUIManager.ShowUIElement(UIElementEnums.SettingsPanel);
+    }
+
+    private void GoLobby()
+    {
+        Time.timeScale = 1f;   // GameStop은 timeScale 0 — 복원 없이 나가면 로비가 얼어붙는다
+        UnityEngine.SceneManagement.SceneManager.LoadScene("LobbyScene");
     }
 
     public override void Show()

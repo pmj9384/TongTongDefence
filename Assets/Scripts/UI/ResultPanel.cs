@@ -15,10 +15,18 @@ public class ResultPanel : UIElement
     [SerializeField] private TMP_Text titleText;
     [SerializeField] private TMP_Text infoText;
     [SerializeField] private Button restartButton;
+    [SerializeField] private Button lobbyButton;    // 아웃게임 복귀 — 뽑기/스킨 루프의 닫는 고리 (씬 수동 배치)
 
     private void Awake()
     {
         restartButton.onClick.AddListener(() => gameManager.RestartGame());
+        if (lobbyButton != null) lobbyButton.onClick.AddListener(GoLobby);
+    }
+
+    private void GoLobby()
+    {
+        Time.timeScale = 1f;   // 결과 상태는 timeScale 0 — 복원 없이 씬을 바꾸면 로비가 얼어붙는다
+        UnityEngine.SceneManagement.SceneManager.LoadScene("LobbyScene");
     }
 
     public override void Show()
@@ -44,12 +52,13 @@ public class ResultPanel : UIElement
         }
         else
         {
-            // 무한모드: 진행도% 대신 이번 점수 + 최고(+신기록). 점수 = StatsManager SSOT
+            // 무한모드: 진행도% 대신 이번 점수 + 최고(+신기록) + 코인 보상. 점수·코인 = StatsManager SSOT
             StatsManager stats = gameManager.StatsManager;
             titleText.text = "Game Over";
-            infoText.text = stats.IsNewRecord
-                ? $"SCORE {stats.Score.Current:N0}   신기록!\n최고 {stats.Best:N0}"
-                : $"SCORE {stats.Score.Current:N0}\n최고 {stats.Best:N0}";
+            string score = stats.IsNewRecord
+                ? $"SCORE {stats.Score.Current:N0}   신기록!"
+                : $"SCORE {stats.Score.Current:N0}";
+            infoText.text = $"{score}\n최고 {stats.Best:N0}   +{stats.CoinsEarned:N0} 코인";
         }
         overlay.SetActive(true);
     }
