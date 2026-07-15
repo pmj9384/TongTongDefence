@@ -5,4 +5,5 @@ public enum UIElementEnums
 	PausePanel,
 	CombatInfoPanel,
 	BossHpBar,
+	BossWarning,
 }

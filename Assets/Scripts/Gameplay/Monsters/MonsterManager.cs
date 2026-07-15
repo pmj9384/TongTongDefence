@@ -102,8 +102,7 @@ public class MonsterManager : InGameManager
         boss.OnSummon += HandleBossSummon;        // 소환 → 잡몹 스폰으로 적용
         boss.Activate();
         OnBossSpawned?.Invoke(activeBoss);
-        SoundManager.Instance?.PlaySfx(SfxClipId.BossAppear);
-        SoundManager.Instance?.PlayBgm(BgmClipId.Boss);   // 보스 BGM 전환 (레퍼런스 관찰 — 클립 조달 전엔 무음 스킵)
+        // 경보음·보스 BGM은 예고 국면(WaveManager.OnBossIncoming)으로 이동 — 스폰 순간엔 소리 없음
         return activeBoss;
     }
 
