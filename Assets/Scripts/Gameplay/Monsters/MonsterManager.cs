@@ -66,6 +66,9 @@ public class MonsterManager : InGameManager
     public float MoveSpeed => moveSpeed;
     public bool FieldIsEmpty => field.IsEmpty;
 
+    // 필드 소탕 (보스 격파 후 새 구간 전환용) — "처치"가 아니라 제거: 킬 이벤트·점수·레벨 없이 풀 반환
+    public void ClearField() => ClearAllMonsters();
+
     // 행 단위 스폰 (행 컨베이어 — 원작 확정 관찰 2026-07-07). 매판 동일 패턴, Random 금지.
     // gridRowOffset: 스폰 기준 행에서 아래로 몇 칸 (시작 5행 일괄 배치용 — 스트림 중엔 0)
     public void SpawnRow(RowCell[] rowCells, int baseHp, int gridRowOffset = 0)

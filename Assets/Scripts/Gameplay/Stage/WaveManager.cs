@@ -9,17 +9,29 @@ public class WaveManager : InGameManager
     // 진행도(처치 비율)의 분모 — 패턴의 총 유닛 수 (멀티셀도 1유닛)
     public int TotalMonsterCount => pattern.TotalUnits;
 
-    // 다음 보스까지의 진행도(0~1) — 무한모드 HUD 게이지용. 보스 웨이브(=%0) 동안 0, 격파 후 모듈로가 자동 재충전
-    public float BossProgress => bossWaveInterval > 0 ? (nextRow % bossWaveInterval) / (float)bossWaveInterval : 0f;
+    // 다음 보스까지의 진행도(0~1) — 무한모드 HUD 게이지용. 구간(배치 이후 컨베이어) 내 행수 / 간격.
+    // 구간 소진(==간격) = 보스 스폰 대기 한 칸 — 100% 유지로 "보스 온다" 예고 (유저 확정 2026-07-15).
+    // 그 너머(보스 중·소탕·숨고르기)는 0. 배치 5행은 카운트 제외
+    public float BossProgress
+    {
+        get
+        {
+            int rows = nextRow - cycleStartRow;
+            if (rows == bossWaveInterval) return 1f;
+            return rows > bossWaveInterval ? 0f : (float)rows / bossWaveInterval;
+        }
+    }
 
-    [SerializeField] private int initialRows = 5;      // 시작 일괄 스폰 행 수 (원작 관찰)
+    [SerializeField] private int initialRows = 5;      // 구간 시작 일괄 스폰 행 수 (원작 관찰)
     [SerializeField] private int baseHp = 30;          // 행 HP = baseHp + 행번호 × hpPerRow [튜닝]
     [SerializeField] private int hpPerRow = 10;
-    [SerializeField] private int bossWaveInterval = 20; // 몇 웨이브마다 보스 관문인지 (설계 §2-③)
+    [SerializeField] private int bossWaveInterval = 20; // 구간 길이 — 배치 후 몇 행 뒤 보스인지 (설계 §2-③)
+    [SerializeField] private float bossClearDelay = 3f; // 보스 격파 → 소탕 후 다음 구간 배치까지 숨고르기(초)
 
     private StagePattern pattern;
     private MonsterManager monsterManager;
     private int nextRow;
+    private int cycleStartRow;     // 현 구간 시작 시점의 누적 행 — 진행도·보스 트리거 기준점 (배치마다 갱신)
     private bool hasStarted;
     private Monster currentBoss;   // 진행 중 보스 — 격파 신호 대조용
     private bool bossAlive;
@@ -49,13 +61,20 @@ public class WaveManager : InGameManager
         if (hasStarted) return;   // SkillSelection 복귀 등 GamePlay 재진입 대비
         hasStarted = true;
 
-        // 시작 일괄: 패턴 첫 행이 가장 아래 (먼저 나온 행이 먼저 내려가던 상태)
+        SpawnBatch();   // 첫 구간 시작 (보스 격파 후 재시작과 동일 코드)
+        StartCoroutine(ConveyorLoop());
+    }
+
+    // 구간 시작 일괄 배치 — 패턴 이어지는 위치(% Count)부터 5행, 먼저 나온 행이 아래.
+    // 게임 시작과 보스 격파 후가 같은 절차라 공유 ("다시 처음처럼" — 유저 확정 2026-07-15)
+    private void SpawnBatch()
+    {
         int batch = Mathf.Min(initialRows, pattern.Rows.Count);
         for (int i = 0; i < batch; i++)
-            monsterManager.SpawnRow(pattern.Rows[i], RowHp(i), gridRowOffset: batch - 1 - i);
-        nextRow = batch;
-
-        StartCoroutine(ConveyorLoop());
+            monsterManager.SpawnRow(pattern.Rows[(nextRow + i) % pattern.Rows.Count],
+                                    RowHp(nextRow + i), gridRowOffset: batch - 1 - i);
+        nextRow += batch;
+        cycleStartRow = nextRow;   // 새 구간 기준점 — 진행도 0%부터
     }
 
     private IEnumerator ConveyorLoop()
@@ -69,22 +88,29 @@ public class WaveManager : InGameManager
         while (true)
         {
             yield return wait;
-            if (nextRow > 0 && nextRow % bossWaveInterval == 0)
-                yield return BossWave();   // 보스 관문 — 격파까지 줄 스폰 멈춤
+            if (nextRow - cycleStartRow >= bossWaveInterval)
+                yield return BossWave();   // 구간 소진 → 보스 관문 (격파까지 줄 스폰 멈춤)
             else
+            {
                 monsterManager.SpawnRow(pattern.Rows[nextRow % pattern.Rows.Count], RowHp(nextRow));
-            nextRow++;
+                nextRow++;
+            }
         }
     }
 
-    // 보스 관문: 줄 스폰을 멈추고 보스 격파까지 대기. 소환·지속공격은 BossController→MonsterManager가 처리하므로
-    // 여기선 "정지 + 격파 감시"만 한다 (두 스폰 소스가 동시에 안 돌아 CSV 컨베이어와 겹치지 않음).
+    // 보스 관문: 보스 격파까지 대기 → 소환 잔몹 소탕(처치 아님 — 점수/레벨 없음) → 숨고르기 → 새 구간 배치.
+    // 소탕·배치는 코루틴(물리 콜백 밖)에서 실행 — 충돌 도중 콜라이더를 끄면 볼 반사가 깨지는 기존 버그 회피 구조 유지.
     private IEnumerator BossWave()
     {
         currentBoss = monsterManager.SpawnBoss(RowHp(nextRow));
+        nextRow++;   // 보스도 HP 곡선의 한 칸 소모 — 구간이 반복돼도 난이도는 계속 상승
         bossAlive = true;
         while (bossAlive)
             yield return null;
+
+        monsterManager.ClearField();                       // 잔몹 일괄 제거 — 관문 보상은 보스 +100으로 이미 지급
+        yield return new WaitForSeconds(bossClearDelay);   // 숨고르기 (스케일 시간 — 퍼즈와 함께 멈춤)
+        SpawnBatch();                                      // 다음 구간 — 시작과 동일하게 5행 일괄
     }
 
     private void HandleMonsterKilled(Monster monster)
