@@ -8,8 +8,9 @@ using UnityEngine.UI;
 public class InGameHud : UIElement
 {
     [Header("씬 참조 (TopBar 아래 조립됨)")]
-    [SerializeField] private Slider progressSlider;   // 진행도 게이지 (핸들 없는 Slider — HP와 방식 통일)
+    [SerializeField] private Slider progressSlider;   // 진행도 게이지 = 다음 보스까지 (핸들 없는 Slider)
     [SerializeField] private TMP_Text progressText;   // "N%"
+    [SerializeField] private TMP_Text scoreText;      // 점수 (가중: 잡몹10/보스100) — 씬에서 신규 연결
     [SerializeField] private Slider levelSlider;      // 레벨(킬) 게이지
     [SerializeField] private GameObject levelBadge;   // ◆ 다이아 (선택창 동안 함께 숨김)
     [SerializeField] private TMP_Text levelText;      // "Lv.N"
@@ -20,6 +21,7 @@ public class InGameHud : UIElement
     [SerializeField] private Color levelFullColor = new(0.9f, 0.25f, 0.15f);   // 꽉 참 = 빨강 (원작 레벨업 바)
 
     private int lastProgressPercent = -1;
+    private int lastScore = -1;
     private int lastLevel = -1;
     private int lastKillsIntoLevel = -1;
     private float progressTarget;
@@ -48,14 +50,22 @@ public class InGameHud : UIElement
             if (levelBadge != null) levelBadge.SetActive(!selecting);   // 배선 전이어도 나머지는 동작
         }
 
-        // 진행도 = 처치 누계 ÷ 전체 몬스터 수 (ResultPanel의 Fail 지표와 같은 정의)
-        int total = waveManager.TotalMonsterCount;
-        int percent = total > 0 ? skillManager.PlayerLevel.TotalKills * 100 / total : 0;
+        // 진행도 = 다음 보스까지 (무한모드: 유한 처치%는 오버슛하므로 보스 관문 카운트로 대체)
+        float bossProgress = waveManager.BossProgress;
+        int percent = Mathf.RoundToInt(bossProgress * 100);
         if (percent != lastProgressPercent)
         {
             lastProgressPercent = percent;
-            progressTarget = percent / 100f;
+            progressTarget = bossProgress;
             progressText.text = $"{percent}%";
+        }
+
+        // 점수 (가중) — StatsManager가 SSOT. 값 바뀐 프레임에만 할당(GC 회피)
+        StatsManager stats = gameManager.StatsManager;
+        if (scoreText != null && stats != null && stats.Score != null && stats.Score.Current != lastScore)
+        {
+            lastScore = stats.Score.Current;
+            scoreText.text = stats.Score.Current.ToString("N0");
         }
 
         // 레벨 게이지 = 다음 레벨까지의 킬 진행 [가정A]

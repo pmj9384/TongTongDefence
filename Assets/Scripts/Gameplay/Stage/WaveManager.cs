@@ -9,6 +9,9 @@ public class WaveManager : InGameManager
     // 진행도(처치 비율)의 분모 — 패턴의 총 유닛 수 (멀티셀도 1유닛)
     public int TotalMonsterCount => pattern.TotalUnits;
 
+    // 다음 보스까지의 진행도(0~1) — 무한모드 HUD 게이지용. 보스 웨이브(=%0) 동안 0, 격파 후 모듈로가 자동 재충전
+    public float BossProgress => bossWaveInterval > 0 ? (nextRow % bossWaveInterval) / (float)bossWaveInterval : 0f;
+
     [SerializeField] private int initialRows = 5;      // 시작 일괄 스폰 행 수 (원작 관찰)
     [SerializeField] private int baseHp = 30;          // 행 HP = baseHp + 행번호 × hpPerRow [튜닝]
     [SerializeField] private int hpPerRow = 10;

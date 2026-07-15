@@ -23,30 +23,34 @@ public class ResultPanel : UIElement
 
     public override void Show()
     {
-        if (gameManager.CurrentState == GameManager.GameState.GameClear)
-        {
-            PlayerHealth health = gameManager.PlayerManager.Health;
-            int percent = health.Current * 100 / health.Max;
-            StartCoroutine(ShowAfter(clearDelay, "Stage Clear!", $"남은 체력 {percent}%"));
-        }
-        else
-        {
-            // 진행도 = 처치 누계 ÷ 전체 몬스터 수 (InGameHud와 같은 정의)
-            int total = gameManager.WaveManager.TotalMonsterCount;
-            int percent = total > 0 ? gameManager.SkillManager.PlayerLevel.TotalKills * 100 / total : 0;
-            StartCoroutine(ShowAfter(failDelay, "Stage Fail", $"진행도 {percent}%"));
-        }
+        bool clear = gameManager.CurrentState == GameManager.GameState.GameClear;
+        StartCoroutine(ShowAfter(clear ? clearDelay : failDelay));
     }
 
     public override void Hide() => overlay.SetActive(false);
 
-    private IEnumerator ShowAfter(float delay, string title, string info)
+    // 지표는 딜레이가 끝난 뒤 읽는다 — GameOver 진입 액션(StatsManager.SubmitScore 등)이 모두 끝난 시점이라
+    // 최고기록 갱신 순서에 안전. (결과 상태는 timeScale 0이라 반드시 Realtime 딜레이)
+    private IEnumerator ShowAfter(float delay)
     {
-        // 결과 상태는 timeScale 0 (게임 정지) — 스케일 시간을 쓰면 이 딜레이가 영원히 안 끝난다
         yield return new WaitForSecondsRealtime(delay);
 
-        titleText.text = title;
-        infoText.text = info;
+        if (gameManager.CurrentState == GameManager.GameState.GameClear)
+        {
+            PlayerHealth health = gameManager.PlayerManager.Health;
+            int percent = health.Current * 100 / health.Max;
+            titleText.text = "Stage Clear!";
+            infoText.text = $"남은 체력 {percent}%";
+        }
+        else
+        {
+            // 무한모드: 진행도% 대신 이번 점수 + 최고(+신기록). 점수 = StatsManager SSOT
+            StatsManager stats = gameManager.StatsManager;
+            titleText.text = "Game Over";
+            infoText.text = stats.IsNewRecord
+                ? $"SCORE {stats.Score.Current:N0}   신기록!\n최고 {stats.Best:N0}"
+                : $"SCORE {stats.Score.Current:N0}\n최고 {stats.Best:N0}";
+        }
         overlay.SetActive(true);
     }
 }
