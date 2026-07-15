@@ -28,6 +28,7 @@ public class InGameHud : UIElement
     private float levelTarget;
     private bool fillingToFull;   // 레벨업 연출: 게이지를 먼저 꽉 채우는 중
     private Image levelFill;      // 색 전환용 (Slider fillRect에서 획득)
+    private bool bossActive;      // 보스 동안 진행도·레벨 게이지 숨김 ↔ 보스 HP바 교대 (AnimalBreakOut 패턴)
 
     private void Start()   // 매니저 Initialize 완료 후 (관례)
     {
@@ -35,19 +36,42 @@ public class InGameHud : UIElement
         levelFill = levelSlider.fillRect.GetComponent<Image>();
     }
 
+    public override void Initialize()
+    {
+        gameManager.MonsterManager.OnBossSpawned += HandleBossSpawned;
+        gameManager.MonsterManager.OnBossEnded += HandleBossEnded;
+    }
+
+    private void OnDestroy()
+    {
+        if (gameManager == null || gameManager.MonsterManager == null) return;
+        gameManager.MonsterManager.OnBossSpawned -= HandleBossSpawned;
+        gameManager.MonsterManager.OnBossEnded -= HandleBossEnded;
+    }
+
+    private void HandleBossSpawned(Monster _) => bossActive = true;
+    private void HandleBossEnded() => bossActive = false;
+
     private void Update()
     {
         var skillManager = gameManager.SkillManager;
         var waveManager = gameManager.WaveManager;
         if (skillManager == null || skillManager.PlayerLevel == null) return;
 
-        // 스킬 선택 동안 HUD 레벨 UI 숨김 — 선택창의 꽉 찬 바가 그 자리를 대신함 (유저 확정: 겹침 대신 교대)
-        bool selecting = gameManager.CurrentState == GameManager.GameState.SkillSelection;
-        if (levelSlider.gameObject.activeSelf == selecting)
+        // 레벨 UI 숨김 = 스킬 선택(선택창 바가 대신) 또는 보스(보스 HP바와 교대 — 유저 확정 2026-07-15)
+        bool hideLevel = gameManager.CurrentState == GameManager.GameState.SkillSelection || bossActive;
+        if (levelSlider.gameObject.activeSelf == hideLevel)
         {
-            levelSlider.gameObject.SetActive(!selecting);
-            levelText.gameObject.SetActive(!selecting);
-            if (levelBadge != null) levelBadge.SetActive(!selecting);   // 배선 전이어도 나머지는 동작
+            levelSlider.gameObject.SetActive(!hideLevel);
+            levelText.gameObject.SetActive(!hideLevel);
+            if (levelBadge != null) levelBadge.SetActive(!hideLevel);   // 배선 전이어도 나머지는 동작
+        }
+
+        // 진행도 게이지도 보스 동안 숨김 (보스까지 진행도가 어차피 0 — 자리는 보스 HP바가 사용)
+        if (progressSlider.gameObject.activeSelf == bossActive)
+        {
+            progressSlider.gameObject.SetActive(!bossActive);
+            progressText.gameObject.SetActive(!bossActive);
         }
 
         // 진행도 = 다음 보스까지 (무한모드: 유한 처치%는 오버슛하므로 보스 관문 카운트로 대체)

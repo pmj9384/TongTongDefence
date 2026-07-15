@@ -8,6 +8,7 @@ public class MonsterManager : InGameManager
     public event Action<Monster> OnMonsterDespawned; // 처치가 아닌 소멸(도달 돌진) — 몬스터 단위 외부 기록 정리용 (단검 등)
     public event Action<SkillId?, int> OnDamageDealt; // (소스, 데미지) — 전투 정보 집계용 재방송 (StatsManager 구독)
     public event Action<Monster> OnBossSpawned;       // 보스 인스턴스 전달 — 보스 HP바(UI)가 HP 이벤트를 구독할 창구
+    public event Action OnBossEnded;                  // 보스 종료(격파·게임오버 정리 공통) — HUD 교대 복귀 신호
     public event Action OnFieldCleared;
 
     [SerializeField] private GameObject monsterPrefab;
@@ -153,6 +154,7 @@ public class MonsterManager : InGameManager
         boss.OnAttackTick -= HandleBossAttack;
         boss.OnSummon -= HandleBossSummon;
         activeBoss = null;
+        OnBossEnded?.Invoke();   // 격파(HandleMonsterDied)·게임오버 정리(ClearAllMonsters) 양 경로 공통 지점
     }
 
     // 패턴 코드 → 타입: 숫자 코드는 배열 인덱스, 멀티셀 앵커는 이름 검색 (배열 순서 계약 회피)
