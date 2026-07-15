@@ -90,7 +90,8 @@ public class SoundManager : MonoBehaviour
 
     public void StopBgm() => bgmSource.Stop();
 
-    public void PlaySfx(SfxClipId id)
+    // volumeScale: 클립별 크기 배율 — 고빈도 소리(타격 등)를 전체 SFX 볼륨과 별개로 죽일 때 사용
+    public void PlaySfx(SfxClipId id, float volumeScale = 1f)
     {
         if (!sfxClips.TryGetValue(id, out AudioClip clip)) return;
 
@@ -103,16 +104,17 @@ public class SoundManager : MonoBehaviour
         {
             int idx = (channelIndex + i) % sfxSources.Length;
             if (sfxSources[idx].isPlaying) continue;
-            Play(idx, clip);
+            Play(idx, clip, volumeScale);
             return;
         }
-        Play((channelIndex + 1) % sfxSources.Length, clip);
+        Play((channelIndex + 1) % sfxSources.Length, clip, volumeScale);
     }
 
-    private void Play(int idx, AudioClip clip)
+    private void Play(int idx, AudioClip clip, float volumeScale)
     {
         channelIndex = idx;
         sfxSources[idx].clip = clip;
+        sfxSources[idx].volume = SfxVolume * volumeScale;
         sfxSources[idx].Play();
     }
 

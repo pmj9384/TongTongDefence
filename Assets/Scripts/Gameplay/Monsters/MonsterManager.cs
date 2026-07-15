@@ -244,7 +244,7 @@ public class MonsterManager : InGameManager
     private void HandleMonsterDamaged(Monster monster, int damage, bool isCritical, SkillId? source)
     {
         popupSpawner.Show(monster.transform.position, damage, isCritical);
-        SoundManager.Instance?.PlaySfx(SfxClipId.MonsterHit);   // 스팸은 SoundManager 쿨다운이 방어
+        SoundManager.Instance?.PlaySfx(SfxClipId.MonsterHit, 0.3f);   // 고빈도 타격음 — 작게 (장르 관행), 스팸은 쿨다운 방어
         OnDamageDealt?.Invoke(source, damage);
     }
 
