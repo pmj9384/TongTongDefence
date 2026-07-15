@@ -11,9 +11,6 @@ public class SoundManager : MonoBehaviour
 {
     public static SoundManager Instance { get; private set; }
 
-    private const string BgmVolumeKey = "BgmVolume";
-    private const string SfxVolumeKey = "SfxVolume";
-
     [SerializeField] private int sfxChannels = 8;             // 동시 재생 폭 (옛 SoundManager 라운드로빈 이식)
     [SerializeField] private float sameClipCooldown = 0.05f;  // 동일 클립 최소 간격 — 화상/레이저 틱 스팸 방지
 
@@ -33,8 +30,9 @@ public class SoundManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        BgmVolume = PlayerPrefs.GetFloat(BgmVolumeKey, 0.6f);
-        SfxVolume = PlayerPrefs.GetFloat(SfxVolumeKey, 1f);
+        // 볼륨 SSOT = PlayerAccountData (세이브 체인 이관 2026-07-15). GameDataManager는 접근 시 자동 생성·로드
+        BgmVolume = GameDataManager.Instance.PlayerAccountData.BgmVolume;
+        SfxVolume = GameDataManager.Instance.PlayerAccountData.SfxVolume;
 
         CreateSources();
         LoadClips();
@@ -125,13 +123,13 @@ public class SoundManager : MonoBehaviour
     {
         BgmVolume = Mathf.Clamp01(volume);
         bgmSource.volume = BgmVolume;
-        PlayerPrefs.SetFloat(BgmVolumeKey, BgmVolume);
+        GameDataManager.Instance.PlayerAccountData.BgmVolume = BgmVolume;   // 영속은 세이브 체인 몫
     }
 
     public void SetSfxVolume(float volume)
     {
         SfxVolume = Mathf.Clamp01(volume);
         foreach (AudioSource src in sfxSources) src.volume = SfxVolume;
-        PlayerPrefs.SetFloat(SfxVolumeKey, SfxVolume);
+        GameDataManager.Instance.PlayerAccountData.SfxVolume = SfxVolume;
     }
 }

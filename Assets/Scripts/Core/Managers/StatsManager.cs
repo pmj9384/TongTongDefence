@@ -5,14 +5,13 @@ using UnityEngine;
 // UI(전투 정보 창)는 GameManager.StatsManager 한 곳만 본다.
 public class StatsManager : InGameManager
 {
-    private const string HighScoreKey = "HighScore";
-
     [SerializeField] private int killPoints = 10;    // 잡몹 1처치 점수 (튜닝)
     [SerializeField] private int bossPoints = 100;   // 보스 1처치 점수 (튜닝)
 
     public CombatStats Combat { get; private set; }
     public ScoreCounter Score { get; private set; }   // 이번 런 점수
-    public int Best { get; private set; }             // 최고기록 (PlayerPrefs 영속)
+    // 최고기록 SSOT = PlayerAccountData (아웃게임 이식으로 세이브 체인 도입 — PlayerPrefs에서 이관 2026-07-15)
+    public int Best => GameDataManager.Instance.PlayerAccountData.BestScore;
     public bool IsNewRecord { get; private set; }     // 이번 런이 최고 갱신했는지 (결과창 표시용)
 
     // 전투 경과(초) — Time.time은 timeScale을 타므로 정지(선택/퍼즈/결과) 시간이 자동 제외된다 [가정, 원작 DPS 감각]
@@ -25,7 +24,6 @@ public class StatsManager : InGameManager
         base.Initialize();
         Combat = new CombatStats();
         Score = new ScoreCounter();       // 매 런 새로 — RestartGame 시 0부터
-        Best = PlayerPrefs.GetInt(HighScoreKey, 0);
         IsNewRecord = false;
         combatStartTime = Time.time;
 
@@ -51,10 +49,8 @@ public class StatsManager : InGameManager
     // GameOver 진입 시 최고기록 갱신·영속 (ResultPanel은 딜레이 후 읽으므로 순서 안전)
     private void SubmitScore()
     {
-        if (Score.Current <= Best) return;
-        Best = Score.Current;
+        if (!GameDataManager.Instance.PlayerAccountData.TryUpdateBestScore(Score.Current)) return;
         IsNewRecord = true;
-        PlayerPrefs.SetInt(HighScoreKey, Best);
-        PlayerPrefs.Save();
+        SaveLoadSystem.Instance.Save();   // 게임오버는 드문 이벤트 — 즉시 파일 저장 (모바일 강제종료 대비)
     }
 }
