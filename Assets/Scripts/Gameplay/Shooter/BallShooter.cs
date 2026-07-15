@@ -53,6 +53,7 @@ public class BallShooter
         ball.OnHitMonster += HandleBallHitMonster;
         ball.OnExitField += HandleBallExitField;
         ball.Launch(direction, ballSpeed, origin.position, loadout);
+        SoundManager.Instance?.PlaySfx(SfxClipId.BallShoot);   // null 허용 — 씬에 사운드 없는 테스트 환경 대비
     }
 
     // 히트는 BallManager로 중계 → SkillManager가 데미지 계산 (Ball→Shooter→Manager 중계 관례)

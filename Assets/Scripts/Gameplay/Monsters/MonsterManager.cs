@@ -102,6 +102,8 @@ public class MonsterManager : InGameManager
         boss.OnSummon += HandleBossSummon;        // 소환 → 잡몹 스폰으로 적용
         boss.Activate();
         OnBossSpawned?.Invoke(activeBoss);
+        SoundManager.Instance?.PlaySfx(SfxClipId.BossAppear);
+        SoundManager.Instance?.PlayBgm(BgmClipId.Boss);   // 보스 BGM 전환 (레퍼런스 관찰 — 클립 조달 전엔 무음 스킵)
         return activeBoss;
     }
 
@@ -188,7 +190,12 @@ public class MonsterManager : InGameManager
 
     private void HandleMonsterDied(Monster monster)
     {
-        if (monster == activeBoss) DetachBoss();   // 보스 격파 → 이벤트 해제 (BossController는 스스로 코루틴 정리)
+        bool isBoss = monster == activeBoss;   // DetachBoss가 activeBoss를 비우므로 판별을 먼저
+        if (isBoss) DetachBoss();              // 보스 격파 → 이벤트 해제 (BossController는 스스로 코루틴 정리)
+
+        SoundManager.Instance?.PlaySfx(isBoss ? SfxClipId.BossDie : SfxClipId.MonsterDie);
+        if (isBoss) SoundManager.Instance?.PlayBgm(BgmClipId.InGame);   // 격파 경로만 BGM 복귀 — 게임오버 정리는 제외
+
         Unsubscribe(monster);
         field.Remove(monster);
         pendingRelease.Add(monster);   // 물리적 제거는 LateUpdate에서
@@ -237,6 +244,7 @@ public class MonsterManager : InGameManager
     private void HandleMonsterDamaged(Monster monster, int damage, bool isCritical, SkillId? source)
     {
         popupSpawner.Show(monster.transform.position, damage, isCritical);
+        SoundManager.Instance?.PlaySfx(SfxClipId.MonsterHit);   // 스팸은 SoundManager 쿨다운이 방어
         OnDamageDealt?.Invoke(source, damage);
     }
 
