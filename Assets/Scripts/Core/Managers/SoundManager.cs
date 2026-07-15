@@ -90,6 +90,9 @@ public class SoundManager : MonoBehaviour
 
     public void StopBgm() => bgmSource.Stop();
 
+    // "조용할 때만" 판단용 — GamePlay 재진입(스킬 선택 복귀)이 보스 BGM을 기본 곡으로 덮지 않게
+    public bool IsBgmPlaying => bgmSource != null && bgmSource.isPlaying;
+
     // volumeScale: 클립별 크기 배율 — 고빈도 소리(타격 등)를 전체 SFX 볼륨과 별개로 죽일 때 사용
     public void PlaySfx(SfxClipId id, float volumeScale = 1f)
     {

@@ -98,7 +98,12 @@ public class GameManager : MonoBehaviour
         AddGameStateStartAction(GameState.GameClear, PauseTimeScale);
 
         // 사운드 훅 — SoundManager는 영속 싱글톤이라 씬 이벤트를 구독하지 않고, 상태 전환 지점에서 직접 호출
-        AddGameStateEnterAction(GameState.GamePlay, () => SoundManager.Instance?.PlayBgm(BgmClipId.InGame));   // 멱등 — 재진입에도 안 끊김
+        AddGameStateEnterAction(GameState.GamePlay, () =>
+        {
+            // 침묵일 때만 기본 곡 시작 — 스킬 선택 복귀 같은 재진입이 보스 BGM을 덮어쓰지 않게 (실버그 2026-07-15)
+            if (SoundManager.Instance != null && !SoundManager.Instance.IsBgmPlaying)
+                SoundManager.Instance.PlayBgm(BgmClipId.InGame);
+        });
         AddGameStateEnterAction(GameState.SkillSelection, () => SoundManager.Instance?.PlaySfx(SfxClipId.LevelUp));
         AddGameStateEnterAction(GameState.GameOver, () =>
         {
