@@ -4,4 +4,5 @@ public enum UIElementEnums
 	ResultPanel,
 	PausePanel,
 	CombatInfoPanel,
+	BossHpBar,
 }

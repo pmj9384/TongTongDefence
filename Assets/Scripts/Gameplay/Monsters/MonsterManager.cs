@@ -7,6 +7,7 @@ public class MonsterManager : InGameManager
     public event Action<Monster> OnMonsterKilled;   // 처치된 몬스터 전달 (레벨 카운트·치명타 1회 소모 해제·성냥 폭발 위치)
     public event Action<Monster> OnMonsterDespawned; // 처치가 아닌 소멸(도달 돌진) — 몬스터 단위 외부 기록 정리용 (단검 등)
     public event Action<SkillId?, int> OnDamageDealt; // (소스, 데미지) — 전투 정보 집계용 재방송 (StatsManager 구독)
+    public event Action<Monster> OnBossSpawned;       // 보스 인스턴스 전달 — 보스 HP바(UI)가 HP 이벤트를 구독할 창구
     public event Action OnFieldCleared;
 
     [SerializeField] private GameObject monsterPrefab;
@@ -96,6 +97,7 @@ public class MonsterManager : InGameManager
         boss.OnAttackTick += HandleBossAttack;   // 바닥 정지 중 주기 공격 → 플레이어 데미지로 적용
         boss.OnSummon += HandleBossSummon;        // 소환 → 잡몹 스폰으로 적용
         boss.Activate();
+        OnBossSpawned?.Invoke(activeBoss);
         return activeBoss;
     }
 
