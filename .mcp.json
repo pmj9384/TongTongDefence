@@ -2,7 +2,9 @@
   "mcpServers": {
     "mcp-unity": {
       "command": "node",
-      "args": ["/Users/minjaepark/unity/TongTongDefence/Library/PackageCache/com.gamelovers.mcp-unity@c523d75b086d/Server~/build/index.js"]
+      "args": [
+        "/Users/minjaepark/unity/TongTongDefence/Library/PackageCache/com.gamelovers.mcp-unity@d50c83a273d8/Server~/build/index.js"
+      ]
     }
   }
 }

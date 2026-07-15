@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.gamelovers.mcp-unity": "https://github.com/CoderGamester/mcp-unity.git",
+    "com.gamelovers.mcp-unity": "https://github.com/CoderGamester/mcp-unity.git#d50c83a273d83570bff0b16f5fa5a966c8384fe6",
     "com.unity.2d.animation": "13.0.4",
     "com.unity.2d.aseprite": "3.0.1",
     "com.unity.2d.psdimporter": "12.0.1",
@@ -52,6 +52,7 @@
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
-    "com.unity.modules.xr": "1.0.0"
+    "com.unity.modules.xr": "1.0.0",
+    "com.unity.nuget.newtonsoft-json": "3.2.2"
   }
 }
