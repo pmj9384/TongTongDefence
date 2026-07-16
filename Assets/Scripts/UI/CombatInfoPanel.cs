@@ -46,11 +46,10 @@ public class CombatInfoPanel : UIElement
         var skills = gameManager.SkillManager.PlayerSkills;
         float elapsed = gameManager.StatsManager.CombatElapsed;
 
-        // 진행도 (HUD/Fail 지표와 같은 정의)
-        int total = gameManager.WaveManager.TotalMonsterCount;
-        int percent = total > 0 ? (int)(gameManager.SkillManager.PlayerLevel.TotalKills * 100L / total) : 0;
-        progressText.text = $"{percent}%";
-        progressSlider.value = percent / 100f;
+        // 진행도 = 다음 보스까지 (HUD와 같은 정의 — 무한모드 처치% 오버슛 대체)
+        float bossProgress = gameManager.WaveManager.BossProgress;
+        progressText.text = $"{Mathf.RoundToInt(bossProgress * 100)}%";
+        progressSlider.value = bossProgress;
 
         // 행 구성: 노멀(항상) → 보유 액티브 → 성냥(보유 시 — 부가 피해도 소스 집계, 원작 확인)
         var sources = new List<(SkillId? id, string name, int level, string icon)>
