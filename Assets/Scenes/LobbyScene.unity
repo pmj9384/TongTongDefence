@@ -4638,6 +4638,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3505641174384915175, guid: b3591f7564f9146358a7356d9887f615, type: 3}
+      propertyPath: m_text
+      value: TongTongDefence
+      objectReference: {fileID: 0}
+    - target: {fileID: 3505641174384915175, guid: b3591f7564f9146358a7356d9887f615, type: 3}
       propertyPath: m_fontMaterial
       value: 
       objectReference: {fileID: 1149575194}
