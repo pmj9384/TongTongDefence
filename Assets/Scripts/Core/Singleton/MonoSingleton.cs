@@ -34,6 +34,9 @@ namespace UnityCommunity.UnitySingleton
             }
         }
 
+        /// <summary>생성 부작용 없는 존재 확인 — teardown 경로에서 Instance getter의 재생성을 피할 때 사용</summary>
+        public static bool HasInstance => instance != null;
+
         public virtual bool IsInitialized => this.initializationStatus == SingletonInitializationStatus.Initialized;
 
         protected virtual void Awake()

@@ -18,6 +18,7 @@ public class SkinScreen : UIScreen
     public override void Close()
     {
         base.Close();
+        if (!GameDataManager.HasInstance) return;   // 부팅 Setup/teardown — Instance 접근이 초기화 전 생성을 유발하므로 금지
         GameDataManager.Instance.SkinUserData.OnSkinEquipped -= OnSkinEquipped;
     }
 

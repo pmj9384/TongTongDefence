@@ -14,6 +14,7 @@ public class CoinWidget : UIWidget
 
     protected override void Unsubscribe()
     {
+        if (!GameDataManager.HasInstance) return;   // 씬 teardown — Instance 접근이 죽은 싱글톤을 재생성하므로 금지
         GameDataManager.Instance.PlayerAccountData.OnCoinsChanged -= UpdateUI;
     }
 
