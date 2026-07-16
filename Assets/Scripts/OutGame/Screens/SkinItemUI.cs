@@ -9,7 +9,6 @@ public class SkinItemUI : MonoBehaviour
     [SerializeField] private TMP_Text gradeText;
     [SerializeField] private Button equipButton;
     [SerializeField] private TMP_Text equipButtonText;
-    [SerializeField] private GameObject equippedIndicator;
 
     private string skinId;
 
@@ -27,7 +26,6 @@ public class SkinItemUI : MonoBehaviour
     public void Refresh()
     {
         bool isEquipped = GameDataManager.Instance.SkinUserData.EquippedSkinId == skinId;
-        equippedIndicator.SetActive(isEquipped);
         if (GameDataManager.Instance.SkinUserData.IsOwned(skinId) == false)
         {
             equipButton.interactable = false;
