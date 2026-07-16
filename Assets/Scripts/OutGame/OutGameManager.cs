@@ -23,6 +23,8 @@ public class OutGameManager : MonoBehaviour
             manager.Initialize();
 
         UIManager.OpenScreen<LobbyScreen>();
+
+        SoundManager.Instance.PlayBgm(BgmClipId.Title);   // 씬 단위 BGM — 인게임의 GameManager와 같은 관례
     }
 
     private void OnDestroy()

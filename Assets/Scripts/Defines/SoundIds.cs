@@ -3,6 +3,7 @@ public enum BgmClipId
 {
 	InGame,
 	Boss,
+	Title,
 }
 
 public enum SfxClipId
