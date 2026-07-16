@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using UnityEditor.Search;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 public class ShopScreen : UIScreen
