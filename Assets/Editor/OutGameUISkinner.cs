@@ -235,6 +235,128 @@ public static class OutGameUISkinner
         iconImg.sprite = icon; iconImg.preserveAspect = true; iconImg.raycastTarget = false;
     }
 
+    // 설정 버튼 텍스트 → 톱니 아이콘 (TopBar는 아이콘 온리 표준 — 2026-07-16 유저)
+    [MenuItem("Tools/OutGame/Iconize Options Button")]
+    public static void IconizeOptionsButton()
+    {
+        const string safeAreaPath = "Assets/Prefabs/UI/SafeAreaPanel.prefab";
+        var root = PrefabUtility.LoadPrefabContents(safeAreaPath);
+        var btn = root.transform.Find("TopBar/OptionsButton");
+
+        var img = btn.GetComponent<Image>();
+        img.color = new Color(1f, 1f, 1f, 0f);   // 배경 투명 — 히트 영역은 유지(레이캐스트는 알파 무관)
+
+        var text = btn.Find("Text");
+        if (text != null) text.gameObject.SetActive(false);
+
+        var old = btn.Find("Icon");
+        if (old != null) Object.DestroyImmediate(old.gameObject);
+        var go = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+        var rt = (RectTransform)go.transform;
+        rt.SetParent(btn, false);
+        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.sizeDelta = new Vector2(48f, 48f);
+        var iconImg = go.GetComponent<Image>();
+        iconImg.sprite = Load("Icon_Settings");
+        iconImg.preserveAspect = true;
+        iconImg.raycastTarget = false;
+
+        PrefabUtility.SaveAsPrefabAsset(root, safeAreaPath);
+        PrefabUtility.UnloadPrefabContents(root);
+        Debug.Log("[OutGameUISkinner] 설정 버튼 톱니 아이콘화 완료");
+    }
+
+    // 인게임 PausePanel 설정 버튼에 톱니 아이콘 (텍스트 유지 — 메뉴 형제들과 통일)
+    [MenuItem("Tools/OutGame/Iconize InGame Settings Button")]
+    public static void IconizeInGameSettingsButton()
+    {
+        var scene = EditorSceneManager.OpenScene("Assets/Scenes/SampleScene.unity");
+        Transform btn = null;
+        foreach (var tr in Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (tr.name == "SettingsButton") btn = tr;
+
+        var old = btn.Find("Icon");
+        if (old != null) Object.DestroyImmediate(old.gameObject);
+        var go = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+        var rt = (RectTransform)go.transform;
+        rt.SetParent(btn, false);
+        rt.anchorMin = rt.anchorMax = new Vector2(0.14f, 0.5f);
+        rt.sizeDelta = new Vector2(52f, 52f);
+        var img = go.GetComponent<Image>();
+        img.sprite = Load("Icon_Settings");
+        img.preserveAspect = true; img.raycastTarget = false;
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log("[OutGameUISkinner] 인게임 설정 버튼 톱니 아이콘 완료");
+    }
+
+    // 설정 팝업 표준 패턴 적용: 우상단 X + 행 아이콘 + 두꺼운 틸 슬라이더 (인게임 일시정지 설정과 공유)
+    [MenuItem("Tools/OutGame/Restyle Settings Panel")]
+    public static void RestyleSettingsPanel()
+    {
+        const string path = "Assets/Prefabs/SettingsPanel.prefab";
+        var root = PrefabUtility.LoadPrefabContents(path);
+        var card = root.transform.Find("Card");
+
+        // 닫기 → 우상단 X (Button 오브젝트 이동이라 리스너 배선 그대로)
+        var close = (RectTransform)card.Find("CloseButton");
+        close.anchorMin = close.anchorMax = new Vector2(1f, 1f);
+        close.pivot = new Vector2(1f, 1f);
+        close.anchoredPosition = new Vector2(-14f, -14f);
+        close.sizeDelta = new Vector2(56f, 56f);
+        close.GetComponent<Image>().color = new Color(0.07f, 0.11f, 0.22f, 0.9f);
+        var closeText = close.Find("Text").GetComponent<TMP_Text>();
+        closeText.text = "✕";
+        closeText.fontSize = 34f;
+
+        // 행 아이콘 (라벨 왼쪽) + 라벨 자리 조정
+        AddRowIcon(card, "BgmIcon", Load("Icon_Bgm"), 0.70f);
+        AddRowIcon(card, "SfxIcon", Load("Icon_Sfx"), 0.48f);
+        SetAnchors(card.Find("BGMLabel"), new Vector2(0.17f, 0.62f), new Vector2(0.38f, 0.78f));
+        SetAnchors(card.Find("SFXLabel"), new Vector2(0.17f, 0.40f), new Vector2(0.38f, 0.56f));
+
+        // 슬라이더: 두께 + 남색 트랙/틸 채움/큰 핸들
+        RestyleSlider(card.Find("BGMSlider"), 0.655f, 0.745f);
+        RestyleSlider(card.Find("SFXSlider"), 0.435f, 0.525f);
+
+        PrefabUtility.SaveAsPrefabAsset(root, path);
+        PrefabUtility.UnloadPrefabContents(root);
+        Debug.Log("[OutGameUISkinner] 설정 팝업 리스타일 완료");
+    }
+
+    static void AddRowIcon(Transform card, string name, Sprite sprite, float centerY)
+    {
+        var old = card.Find(name);
+        if (old != null) Object.DestroyImmediate(old.gameObject);
+        var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+        var rt = (RectTransform)go.transform;
+        rt.SetParent(card, false);
+        rt.anchorMin = rt.anchorMax = new Vector2(0.11f, centerY);
+        rt.sizeDelta = new Vector2(52f, 52f);
+        var img = go.GetComponent<Image>();
+        img.sprite = sprite; img.preserveAspect = true; img.raycastTarget = false;
+    }
+
+    static void RestyleSlider(Transform slider, float y0, float y1)
+    {
+        SetAnchors(slider, new Vector2(0.42f, y0), new Vector2(0.90f, y1));
+        var bg = slider.Find("Background").GetComponent<Image>();
+        bg.color = new Color(0.08f, 0.12f, 0.24f, 1f);
+        var fill = slider.Find("Fill Area/Fill").GetComponent<Image>();
+        fill.color = Teal;
+        var handle = (RectTransform)slider.Find("Handle Slide Area/Handle");
+        handle.sizeDelta = new Vector2(36f, 8f);   // knob 원형 + 위아래로 살짝 돌출
+    }
+
+    static void SetAnchors(Transform tr, Vector2 min, Vector2 max)
+    {
+        var rt = (RectTransform)tr;
+        rt.anchorMin = min; rt.anchorMax = max;
+        rt.anchoredPosition = Vector2.zero;
+        rt.sizeDelta = Vector2.zero;
+    }
+
     // 1회용: EquippedIndicator 오브젝트 제거 (장착 상태는 버튼 텍스트 "장착중"으로 충분 — 2026-07-16 유저)
     [MenuItem("Tools/OutGame/Remove EquippedIndicator")]
     public static void RemoveEquippedIndicator()
