@@ -23,13 +23,7 @@ public class GameUIManager : InGameManager
             HideUIElement(UIElementEnums.PausePanel);
         });
 
-        // 결과 패널은 성공/실패 공용 — 어느 쪽인지는 패널이 CurrentState로 판별
         GameManager.AddGameStateEnterAction(GameManager.GameState.GameOver, () =>
-        {
-            ShowUIElement(UIElementEnums.ResultPanel);
-        });
-
-        GameManager.AddGameStateEnterAction(GameManager.GameState.GameClear, () =>
         {
             ShowUIElement(UIElementEnums.ResultPanel);
         });

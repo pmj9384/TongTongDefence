@@ -13,7 +13,6 @@ public class GameManager : MonoBehaviour
         GameStop,
         SkillSelection,   // 3택지 스킬 선택 — 게임 완전 정지 (원작 관찰 확정)
         GameOver,
-        GameClear,
         Max,
     }
 
@@ -95,7 +94,6 @@ public class GameManager : MonoBehaviour
         // 결과 상태도 완전 정지 — 예약된 웨이브 코루틴(WaitForSeconds)·발사·하강이 결과 화면 뒤에서
         // 계속 돌던 버그. 재시작은 RestartGame이 timeScale=1 복원 후 씬 리로드라 Exit 액션 불필요
         AddGameStateStartAction(GameState.GameOver, PauseTimeScale);
-        AddGameStateStartAction(GameState.GameClear, PauseTimeScale);
 
         // 사운드 훅 — SoundManager는 영속 싱글톤이라 씬 이벤트를 구독하지 않고, 상태 전환 지점에서 직접 호출
         AddGameStateEnterAction(GameState.GamePlay, () =>

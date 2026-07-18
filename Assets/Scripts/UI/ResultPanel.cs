@@ -8,7 +8,6 @@ using UnityEngine.UI;
 public class ResultPanel : UIElement
 {
     [SerializeField] private float failDelay = 1f;      // 죽음 연출(쓰러짐) 뜸
-    [SerializeField] private float clearDelay = 0.3f;
 
     [Header("씬 참조")]
     [SerializeField] private GameObject overlay;
@@ -31,8 +30,7 @@ public class ResultPanel : UIElement
 
     public override void Show()
     {
-        bool clear = gameManager.CurrentState == GameManager.GameState.GameClear;
-        StartCoroutine(ShowAfter(clear ? clearDelay : failDelay));
+        StartCoroutine(ShowAfter(failDelay));
     }
 
     public override void Hide() => overlay.SetActive(false);
@@ -43,23 +41,13 @@ public class ResultPanel : UIElement
     {
         yield return new WaitForSecondsRealtime(delay);
 
-        if (gameManager.CurrentState == GameManager.GameState.GameClear)
-        {
-            PlayerHealth health = gameManager.PlayerManager.Health;
-            int percent = health.Current * 100 / health.Max;
-            titleText.text = "Stage Clear!";
-            infoText.text = $"남은 체력 {percent}%";
-        }
-        else
-        {
-            // 무한모드: 진행도% 대신 이번 점수 + 최고(+신기록) + 코인 보상. 점수·코인 = StatsManager SSOT
-            StatsManager stats = gameManager.StatsManager;
-            titleText.text = "Game Over";
-            string score = stats.IsNewRecord
-                ? $"SCORE {stats.Score.Current:N0}   신기록!"
-                : $"SCORE {stats.Score.Current:N0}";
-            infoText.text = $"{score}\n최고 {stats.Best:N0}   +{stats.CoinsEarned:N0} 코인";
-        }
+        // 무한모드: 진행도% 대신 이번 점수 + 최고(+신기록) + 코인 보상. 점수·코인 = StatsManager SSOT
+        StatsManager stats = gameManager.StatsManager;
+        titleText.text = "Game Over";
+        string score = stats.IsNewRecord
+            ? $"SCORE {stats.Score.Current:N0}   신기록!"
+            : $"SCORE {stats.Score.Current:N0}";
+        infoText.text = $"{score}\n최고 {stats.Best:N0}   +{stats.CoinsEarned:N0} 코인";
         overlay.SetActive(true);
     }
 }
