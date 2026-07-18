@@ -51,8 +51,10 @@ public class GameManager : MonoBehaviour
         InitializeCoreManagers();
         SetGameState(GameState.WaitLoading);
 
-        // TEMP: 아웃게임 씬이 아직 없어서 임시로 바로 플레이 진입. 아웃게임 추가되면 제거.
+#if UNITY_EDITOR
+        // 에디터에서 SampleScene을 로비 없이 직접 재생할 때 바로 플레이 진입시키는 개발 편의. 빌드는 LobbyScene부터 시작.
         SkipTitle = true;
+#endif
     }
 
     public static bool SkipTitle;
