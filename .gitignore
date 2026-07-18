@@ -29,3 +29,4 @@ Builds/
 # Test Runner 임시
 Assets/Resources/PerformanceTestRun*.json*
 mono_crash.*.json
+.claude/settings.local.json
