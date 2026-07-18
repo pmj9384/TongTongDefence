@@ -51,14 +51,6 @@ public class SaveLoadSystem : PersistentMonoSingleton<SaveLoadSystem>
             return;
         }
 
-        // [AnimalBreakOut] 튜토리얼 완료 여부로 세이브 파일 교체하는 로직
-        //else if (PlayerPrefs.GetInt("ECET_CLEAR_ALL") != 1)
-        //{
-        //    path = "Tables/defaultSave";
-        //    var textAsset = Resources.Load<TextAsset>(path);
-        //    json = textAsset.text;
-        //}
-
         var json = File.ReadAllText(path);
         var saveData = JsonConvert.DeserializeObject<SaveData>(json, settings);
         while (saveData.Version < SaveDataVersion)
