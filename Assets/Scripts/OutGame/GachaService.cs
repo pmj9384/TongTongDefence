@@ -20,10 +20,6 @@ public static class GachaService
     var skin = WeightedRandom();
     bool isNew = GameDataManager.Instance.SkinUserData.Unlock(skin.SkinId);
     return (skin, isNew);
-    // else
-    // {
-    //   return (null, false);
-    // }
   }
   public static List<(SkinDataTable.SkinRawData skin, bool isNew)> DrawTen()
   {
