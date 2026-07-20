@@ -257,6 +257,7 @@ public class MonsterManager : InGameManager
             ReleaseMonster(monster);
         }
         field.Clear();
+        OnFieldCleared?.Invoke();   // 일괄 정리도 "필드 비워짐"으로 통지 — 처치/소멸 이벤트를 안 타므로 외부 몬스터 단위 기록(단검 명단)을 여기서 초기화시킨다
     }
 
     private void Unsubscribe(Monster monster)
