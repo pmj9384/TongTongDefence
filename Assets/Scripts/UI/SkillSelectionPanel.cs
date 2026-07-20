@@ -73,19 +73,22 @@ public class SkillSelectionPanel : MonoBehaviour
             }
 
             SkillDef def = owned.Table[cards[i]];
-            int showLevel = owned.GetLevel(cards[i]) + 1;   // 미보유=Lv1, 보유=현재+1
+            int currentLv = owned.GetLevel(cards[i]);
             bool isActiveKind = def.kind == SkillKind.ActiveBall;
+            bool isPlusOne = isActiveKind && currentLv >= PlayerSkills.MaxLevel;   // 만렙 액티브 = "+1개" 카드 (레벨업 아님)
+            int showLevel = isPlusOne ? PlayerSkills.MaxLevel : currentLv + 1;     // GetLevel 범위(1~3) 안으로 캡 — 만렙 카드가 4를 참조하지 않게
+
             buttons[i].image.color = isActiveKind ? ActiveEdge : PassiveEdge;
             cardInners[i].color = isActiveKind ? ActiveInner : PassiveInner;
 
             icons[i].sprite = Resources.Load<Sprite>(def.iconName);
             names[i].text = def.displayName;
-            descriptions[i].text = def.description;
+            descriptions[i].text = isPlusOne ? $"{def.displayName}이 1개 늘어나 연달아 발사됩니다." : def.description;
 
-            // 원작 #73: 액티브는 ★볼데미지, 레벨은 하단 다이아 (선택 시 도달할 레벨만큼 점등)
+            // 원작 #73: 액티브는 ★볼데미지, 레벨은 하단 다이아 (선택 시 도달할 레벨만큼 점등). 만렙 카드는 "+1" 표기
             damageBadges[i].SetActive(isActiveKind);
-            if (isActiveKind) damages[i].text = $"★ {def.GetLevel(showLevel).ballDamage}";
-            SetDiamonds(i, owned.GetLevel(cards[i]), showLevel);
+            if (isActiveKind) damages[i].text = isPlusOne ? $"★ {def.GetLevel(showLevel).ballDamage}  볼 +1" : $"★ {def.GetLevel(showLevel).ballDamage}";
+            SetDiamonds(i, currentLv, showLevel);   // 만렙이면 3개 모두 점등(레벨 고정), 4개째 없음
         }
 
         overlay.SetActive(true);
