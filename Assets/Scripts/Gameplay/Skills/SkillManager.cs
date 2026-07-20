@@ -258,10 +258,11 @@ public class SkillManager : InGameManager
             bool isActiveBall = playerSkills.Table[picked].kind == SkillKind.ActiveBall;
             bool wasMax = playerSkills.GetLevel(picked) >= PlayerSkills.MaxLevel;
             bool isNew = !playerSkills.Has(picked);
-            playerSkills.Acquire(picked);   // 만렙이면 no-op(레벨 고정), 그 외엔 신규/레벨업
+            bool acquired = playerSkills.Acquire(picked);   // 만석 신규·만렙이면 false(레벨 안 오름)
 
-            // 액티브볼: 신규 획득 시 1개 추가. 만렙("+1개" 카드) 재선택 시에도 1개 추가 — 개수만 늘고 레벨은 Lv3 고정
-            if (isActiveBall && (isNew || wasMax))
+            // 액티브볼 볼 추가 조건: (신규 획득 성공) 또는 (만렙 재선택 = "+1개"). 개수만 늘고 레벨은 Lv3 고정.
+            // 만석이라 획득 실패한 신규는 제외 — 안 그러면 레벨0(미보유) 볼이 인벤토리에 들어가 발사 시 GetLevel(0) 크래시
+            if (isActiveBall && ((isNew && acquired) || wasMax))
                 ballInventory.Add(picked);
         }
     }
