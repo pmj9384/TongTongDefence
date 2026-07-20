@@ -22,7 +22,7 @@ public class SkillManager : InGameManager
     // 발사 볼 인벤토리 — 보유 볼 각각이 개체 (필드에 나가 있거나 대기). 규칙은 BallInventory(순수 코어) 몫
     private BallInventory ballInventory;
     public int NormalBallLevel { get; private set; } = 1;  // 노멀볼 레벨 (전투 정보 ◆xN) — 채움 카드로 개수와 함께 성장
-    private readonly HashSet<Monster> critConsumed = new(); // 단검 "적당 1회" 소모 기록
+    private readonly DaggerCritTracker daggerCrit = new(); // 단검 "몬스터당 1회" 소모 명단 (순수 C#, 테스트 대상)
 
     // 스킬 "행동"은 클래스 단위로 분리(SRP) — 여기는 디스패치만
     private Dictionary<SkillId, IOnHitEffect> onHitEffects;
@@ -59,6 +59,7 @@ public class SkillManager : InGameManager
 
         GameManager.MonsterManager.OnMonsterKilled += HandleMonsterKilled;
         GameManager.MonsterManager.OnMonsterDespawned += HandleMonsterDespawned;
+        GameManager.MonsterManager.OnFieldCleared += HandleFieldCleared;
         GameManager.BallManager.OnBallHitMonster += HandleBallHit;
     }
 
@@ -67,12 +68,17 @@ public class SkillManager : InGameManager
         base.Clear();
         GameManager.MonsterManager.OnMonsterKilled -= HandleMonsterKilled;
         GameManager.MonsterManager.OnMonsterDespawned -= HandleMonsterDespawned;
+        GameManager.MonsterManager.OnFieldCleared -= HandleFieldCleared;
         GameManager.BallManager.OnBallHitMonster -= HandleBallHit;
     }
 
     // 도달 돌진으로 소멸한 몬스터 — 처치가 아니라서 HandleMonsterKilled를 안 타므로,
     // 단검 "적당 1회" 기록을 여기서 지워야 풀 재사용 몬스터가 소모 상태로 시작하지 않는다 (검수 v2 #2)
-    private void HandleMonsterDespawned(Monster monster) => critConsumed.Remove(monster);
+    private void HandleMonsterDespawned(Monster monster) => daggerCrit.Forget(monster.GetInstanceID());
+
+    // 필드 일괄 정리(구간 전환·게임오버) — 처치/소멸 이벤트를 안 타고 사라진 몬스터들의 명단을 통째로 비운다.
+    // 이게 없으면 풀 재사용 몬스터가 이전 소모 상태를 물려받아 단검 크리가 영구 미발동 (검수 v2 #2)
+    private void HandleFieldCleared() => daggerCrit.Clear();
 
     // ── 발사 로테이션 ─────────────────────────────────────────────
 
@@ -167,13 +173,13 @@ public class SkillManager : InGameManager
     // 노멀이 아래(-y) = 볼이 아래에서 타격 = 전면(자수정) / 위(+y) = 후면(에메랄드). 적당 1회만.
     private float CritChanceFor(Monster monster, Vector2 hitNormal)
     {
-        if (critConsumed.Contains(monster)) return 0f;
+        if (daggerCrit.HasConsumed(monster.GetInstanceID())) return 0f;
 
         float bonus = 0f;
         if (hitNormal.y < -0.3f) bonus = PassiveValue(SkillId.AmethystDagger);
         else if (hitNormal.y > 0.3f) bonus = PassiveValue(SkillId.EmeraldDagger);
 
-        if (bonus > 0f) critConsumed.Add(monster);
+        if (bonus > 0f) daggerCrit.MarkConsumed(monster.GetInstanceID());
         return bonus;
     }
 
@@ -181,7 +187,7 @@ public class SkillManager : InGameManager
 
     private void HandleMonsterKilled(Monster monster)
     {
-        critConsumed.Remove(monster);   // 풀 재사용 대비 — 죽은 몬스터의 1회 소모 기록 해제
+        daggerCrit.Forget(monster.GetInstanceID());   // 풀 재사용 대비 — 죽은 몬스터의 1회 소모 기록 해제
 
         // 마지막 성냥: 사망 폭발 (연쇄 사망 시 재귀적으로 다시 발동 — 의도된 연쇄)
         int matchLevel = playerSkills.GetLevel(SkillId.LastMatch);
