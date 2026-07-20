@@ -231,19 +231,7 @@ public class SkillManager : InGameManager
 
     private void HandleCardPicked(SkillId picked)
     {
-        if (picked == SkillId.NormalBall)
-        {
-            NormalBallLevel++;              // 채움 카드 — 노멀볼 레벨과 개수가 함께 성장 (◆xN)
-            ballInventory.Add(null);
-        }
-        else
-        {
-            bool isNew = !playerSkills.Has(picked);
-            playerSkills.Acquire(picked);
-            if (isNew && playerSkills.Table[picked].kind == SkillKind.ActiveBall)
-                ballInventory.Add(picked);  // 새 액티브 볼 = 인벤토리에 볼 1개 추가
-        }
-
+        ApplyPick(picked);
         selectionPanel.Hide();
         pendingDrafts--;
 
@@ -256,4 +244,31 @@ public class SkillManager : InGameManager
             GameManager.SetGameState(GameManager.GameState.GamePlay);
         }
     }
+
+    // 카드 1장 선택의 실제 효과 적용 (드래프트 UI와 분리 — 에디터 디버그 획득도 이 경로를 그대로 탄다)
+    private void ApplyPick(SkillId picked)
+    {
+        if (picked == SkillId.NormalBall)
+        {
+            NormalBallLevel++;              // 채움 카드 — 노멀볼 레벨과 개수가 함께 성장 (◆xN)
+            ballInventory.Add(null);
+        }
+        else
+        {
+            bool isActiveBall = playerSkills.Table[picked].kind == SkillKind.ActiveBall;
+            bool wasMax = playerSkills.GetLevel(picked) >= PlayerSkills.MaxLevel;
+            bool isNew = !playerSkills.Has(picked);
+            playerSkills.Acquire(picked);   // 만렙이면 no-op(레벨 고정), 그 외엔 신규/레벨업
+
+            // 액티브볼: 신규 획득 시 1개 추가. 만렙("+1개" 카드) 재선택 시에도 1개 추가 — 개수만 늘고 레벨은 Lv3 고정
+            if (isActiveBall && (isNew || wasMax))
+                ballInventory.Add(picked);
+        }
+    }
+
+#if UNITY_EDITOR
+    // 에디터 전용 디버그 — 스킬 1레벨업(미보유면 획득). 만렙 도달 검증을 빠르게 하려는 개발 편의.
+    // SkillManagerEditor의 인스펙터 버튼에서 Play 중 호출. 빌드엔 안 들어감.
+    public void DebugLevelUp(SkillId id) => ApplyPick(id);
+#endif
 }
