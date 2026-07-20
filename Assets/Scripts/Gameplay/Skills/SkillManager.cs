@@ -267,8 +267,8 @@ public class SkillManager : InGameManager
     }
 
 #if UNITY_EDITOR
-    // 에디터 전용 디버그 — 스킬 1레벨업(미보유면 획득). 만렙 도달 검증을 빠르게 하려는 개발 편의.
-    // SkillManagerEditor의 인스펙터 버튼에서 Play 중 호출. 빌드엔 안 들어감.
+    // 에디터 전용 디버그 치트 진입점 — 스킬 1레벨업(미보유면 획득). 만렙 액티브볼이면 개수 +1.
+    // CheatWindow(Tools/Cheats)의 버튼에서 Play 중 호출. 빌드엔 안 들어감.
     public void DebugLevelUp(SkillId id) => ApplyPick(id);
 #endif
 }
