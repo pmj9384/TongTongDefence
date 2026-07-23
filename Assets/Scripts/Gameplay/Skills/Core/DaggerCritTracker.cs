@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 // DaggerCritTracker — 단검(자수정/에메랄드)의 "몬스터당 치명타 1회" 소모 명단을 소유.
 // 몬스터를 InstanceID(int)로 식별해 엔진에 의존하지 않는다(순수 C# → 테스트 대상).
-// 명단 관리 한 가지 책임만 진다 — 크리 부여 여부(각도) 판단은 SkillManager가 소유.
+// 명단 관리 한 가지 책임만 진다 — 크리 부여 여부(각도) 판단은 DaggerCritRule이 소유.
 public class DaggerCritTracker
 {
     private readonly HashSet<int> consumed = new();

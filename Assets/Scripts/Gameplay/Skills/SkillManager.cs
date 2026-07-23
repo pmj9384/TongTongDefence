@@ -22,7 +22,7 @@ public class SkillManager : InGameManager
     // 발사 볼 인벤토리 — 보유 볼 각각이 개체 (필드에 나가 있거나 대기). 규칙은 BallInventory(순수 코어) 몫
     private BallInventory ballInventory;
     public int NormalBallLevel { get; private set; } = 1;  // 노멀볼 레벨 (전투 정보 ◆xN) — 채움 카드로 개수와 함께 성장
-    private readonly DaggerCritTracker daggerCrit = new(); // 단검 "몬스터당 1회" 소모 명단 (순수 C#, 테스트 대상)
+    private readonly DaggerCritRule daggerRule = new();    // 단검 전면/후면 크리 규칙 (순수 C#, 테스트 대상)
 
     // 스킬 "행동"은 클래스 단위로 분리(SRP) — 여기는 디스패치만
     private Dictionary<SkillId, IOnHitEffect> onHitEffects;
@@ -82,11 +82,11 @@ public class SkillManager : InGameManager
 
     // 도달 돌진으로 소멸한 몬스터 — 처치가 아니라서 HandleMonsterKilled를 안 타므로,
     // 단검 "적당 1회" 기록을 여기서 지워야 풀 재사용 몬스터가 소모 상태로 시작하지 않는다 (검수 v2 #2)
-    private void HandleMonsterDespawned(Monster monster) => daggerCrit.Forget(monster.GetInstanceID());
+    private void HandleMonsterDespawned(Monster monster) => daggerRule.Forget(monster.GetInstanceID());
 
     // 필드 일괄 정리(구간 전환·게임오버) — 처치/소멸 이벤트를 안 타고 사라진 몬스터들의 명단을 통째로 비운다.
     // 이게 없으면 풀 재사용 몬스터가 이전 소모 상태를 물려받아 단검 크리가 영구 미발동 (검수 v2 #2)
-    private void HandleFieldCleared() => daggerCrit.Clear();
+    private void HandleFieldCleared() => daggerRule.Clear();
 
     // ── 발사 로테이션 ─────────────────────────────────────────────
 
@@ -134,8 +134,8 @@ public class SkillManager : InGameManager
         {
             baseDamage = ball.BaseDamage,
             isNormalBall = ball.ActiveSkill == null,
-            tinHeartBonus = PassiveValue(SkillId.TinHeart),
-            mirrorPerBounce = PassiveValue(SkillId.MagicMirror),
+            tinHeartBonus = playerSkills.PassiveValue(SkillId.TinHeart),
+            mirrorPerBounce = playerSkills.PassiveValue(SkillId.MagicMirror),
             wallBounces = ball.WallBounceCount,
             targetFrozen = status != null && status.IsFrozen,
             frozenBonus = status != null ? status.FrozenDamageBonus : 0f,
@@ -170,32 +170,18 @@ public class SkillManager : InGameManager
         fragmentPool.Release(fragment.gameObject);
     }
 
-    // 보유 패시브의 현재 레벨 a값 (미보유 = 0)
-    private float PassiveValue(SkillId id)
-    {
-        int level = playerSkills.GetLevel(id);
-        return level == 0 ? 0f : playerSkills.Table[id].GetLevel(level).a;
-    }
-
-    // 단검 치명타 [가정3]: 충돌 노멀은 표면→볼 방향이므로,
-    // 노멀이 아래(-y) = 볼이 아래에서 타격 = 전면(자수정) / 위(+y) = 후면(에메랄드). 적당 1회만.
+    // 판정 규칙은 DaggerCritRule(순수 코어) 소유 — 여기는 보유 패시브 값만 이어준다
     private float CritChanceFor(Monster monster, Vector2 hitNormal)
     {
-        if (daggerCrit.HasConsumed(monster.GetInstanceID())) return 0f;
-
-        float bonus = 0f;
-        if (hitNormal.y < -0.3f) bonus = PassiveValue(SkillId.AmethystDagger);
-        else if (hitNormal.y > 0.3f) bonus = PassiveValue(SkillId.EmeraldDagger);
-
-        if (bonus > 0f) daggerCrit.MarkConsumed(monster.GetInstanceID());
-        return bonus;
+        return daggerRule.CritChance(monster.GetInstanceID(), hitNormal.y,
+            playerSkills.PassiveValue(SkillId.AmethystDagger), playerSkills.PassiveValue(SkillId.EmeraldDagger));
     }
 
     // ── 레벨업 → 3택지 ────────────────────────────────────────────
 
     private void HandleMonsterKilled(Monster monster)
     {
-        daggerCrit.Forget(monster.GetInstanceID());   // 풀 재사용 대비 — 죽은 몬스터의 1회 소모 기록 해제
+        daggerRule.Forget(monster.GetInstanceID());   // 풀 재사용 대비 — 죽은 몬스터의 1회 소모 기록 해제
 
         // 마지막 성냥: 사망 폭발 (연쇄 사망 시 재귀적으로 다시 발동 — 의도된 연쇄)
         int matchLevel = playerSkills.GetLevel(SkillId.LastMatch);
