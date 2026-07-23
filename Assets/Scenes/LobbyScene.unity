@@ -5929,10 +5929,6 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1827076991}
     - target: {fileID: 3956997064464416757, guid: b3591f7564f9146358a7356d9887f615, type: 3}
-      propertyPath: gachaResultPopup
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 3956997064464416757, guid: b3591f7564f9146358a7356d9887f615, type: 3}
       propertyPath: gachaTenResultPopup
       value: 
       objectReference: {fileID: 1195814210}

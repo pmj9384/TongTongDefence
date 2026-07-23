@@ -61,6 +61,14 @@ public class SkillManager : InGameManager
         GameManager.MonsterManager.OnMonsterDespawned += HandleMonsterDespawned;
         GameManager.MonsterManager.OnFieldCleared += HandleFieldCleared;
         GameManager.BallManager.OnBallHitMonster += HandleBallHit;
+
+        // 레벨업 0.35s 지연 중 퍼즈로 이탈하면 openDelay가 무산되는데, 되살릴 트리거가 다음 킬뿐이라
+        // 킬 없이 죽으면 그 선택이 증발한다 (검수 v5 #5) — GamePlay 복귀 시 잔여 드래프트를 재개방
+        GameManager.AddGameStateEnterAction(GameManager.GameState.GamePlay, () =>
+        {
+            if (pendingDrafts > 0 && openDelay == null)
+                openDelay = StartCoroutine(OpenSelectionAfterGaugeFill());
+        });
     }
 
     public override void Clear()

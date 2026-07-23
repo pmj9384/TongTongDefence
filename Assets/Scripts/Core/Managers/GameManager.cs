@@ -40,7 +40,6 @@ public class GameManager : MonoBehaviour
     public SkillManager SkillManager { get; private set; }
     public PlayerManager PlayerManager { get; private set; }
     public StatsManager StatsManager { get; private set; }
-    // TODO: 게임별 매니저 추가
 
     #endregion
 
@@ -130,7 +129,6 @@ public class GameManager : MonoBehaviour
         SkillManager = RegisterManager<SkillManager>(managerObjects);
         PlayerManager = RegisterManager<PlayerManager>(managerObjects);
         StatsManager = RegisterManager<StatsManager>(managerObjects);
-        // TODO: 게임별 매니저 등록 추가
 
         foreach (var manager in managers)
         {

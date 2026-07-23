@@ -41,6 +41,7 @@ public class PausePanel : UIElement
     private void GoLobby()
     {
         Time.timeScale = 1f;   // GameStop은 timeScale 0 — 복원 없이 나가면 로비가 얼어붙는다
+        SaveLoadSystem.Instance.Save();   // 인게임 설정 변경(볼륨 등)을 즉시 durable — 앱 종료 저장에만 의존하지 않기 (검수 v5 #4)
         UnityEngine.SceneManagement.SceneManager.LoadScene("LobbyScene");
     }
 
