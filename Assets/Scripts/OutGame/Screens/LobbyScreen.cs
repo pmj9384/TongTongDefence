@@ -22,7 +22,7 @@ public class LobbyScreen : UIScreen
             }
             GameManager.SkipTitle = true;
             SaveLoadSystem.Instance.Save();
-            SceneManager.LoadScene("SampleScene");
+            SceneManager.LoadScene("InGameScene");
         });
         optionsButton.onClick.AddListener(() => uiManager.ShowPopup<OutGameSettingsPanel>());
     }
