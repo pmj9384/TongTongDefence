@@ -8,6 +8,11 @@ on:
   pull_request:
   workflow_dispatch: # Actions 탭에서 수동 실행용
 
+# 테스트 결과를 커밋에 체크런으로 붙이려면 쓰기 권한 필요 (기본 토큰은 읽기 전용)
+permissions:
+  contents: read
+  checks: write
+
 jobs:
   editmode:
     name: EditMode 테스트
