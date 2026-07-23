@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine.UI;
 
 // 결과 팝업 (기획서 필수 5항, UIElement) — 지표 계산/딜레이 로직만. 배치는 씬 소관 (에디터-네이티브).
-// 원작 관찰: Clear는 "남은 체력 %", Fail은 "진행도 %"를 같은 자리에 표시.
+// 무한모드라 승리 상태가 없다 — 타이틀은 항상 Game Over (원작의 Clear/Fail 이원 표시는 스테이지제 전제라 미적용, 검수 v5 #9)
 public class ResultPanel : UIElement
 {
     [SerializeField] private float failDelay = 1f;      // 죽음 연출(쓰러짐) 뜸

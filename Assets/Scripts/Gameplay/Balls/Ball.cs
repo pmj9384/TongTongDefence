@@ -5,7 +5,6 @@ using UnityEngine;
 [RequireComponent(typeof(CircleCollider2D))]
 public class Ball : MonoBehaviour
 {
-    public event Action<Ball> OnHitWall;
     public event Action<Ball, Collider2D, Vector2> OnHitMonster;   // (볼, 몬스터 콜라이더, 충돌 노멀)
     public event Action<Ball> OnExitField;
 
@@ -102,7 +101,6 @@ public class Ball : MonoBehaviour
         if (layer == LayerMask.NameToLayer("Wall"))
         {
             WallBounceCount++;   // "벽" 카운트는 벽만 — 패시브 '마법 거울' 판정 근거
-            OnHitWall?.Invoke(this);
             // 바닥 벽(노멀이 위)에 한 번 튕기면 회수 모드. Wall 레이어 가드 필수 —
             // 블록 윗면에 떨어져도(노멀 위) 회수되면 안 되기 때문
             if (collision.GetContact(0).normal.y > 0.5f)
