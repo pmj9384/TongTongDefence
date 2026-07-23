@@ -24,7 +24,7 @@ public static class BuildScript
         Directory.CreateDirectory("Builds");
         var options = new BuildPlayerOptions
         {
-            scenes = new[] { "Assets/Scenes/SampleScene.unity" },
+            scenes = new[] { "Assets/Scenes/InGameScene.unity" },
             locationPathName = OutputPath,
             target = BuildTarget.Android,      // 플랫폼 스위치 포함 (첫 실행은 리임포트로 수 분)
             options = BuildOptions.None,

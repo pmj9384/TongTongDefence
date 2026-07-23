@@ -13,11 +13,11 @@ public static class OutGameUISkinner
     [MenuItem("Tools/OutGame/Apply Space UI Skin")]
     public static void Apply()
     {
-        var bg    = Load("Background_Lobby");
+        var bg = Load("Background_Lobby");
         var panel = Load("Panel_Common");
-        var card  = Load("Card_Gacha");
-        var coin  = Load("Icon_Coin");
-        var bolt  = Load("Icon_Stamina");
+        var card = Load("Card_Gacha");
+        var coin = Load("Icon_Coin");
+        var bolt = Load("Icon_Stamina");
 
         // ── 1. SafeAreaPanel.prefab: TopBar 아이콘 2개 + 스태미나 팝업 패널 ──
         const string safeAreaPath = "Assets/Prefabs/UI/SafeAreaPanel.prefab";
@@ -85,12 +85,12 @@ public static class OutGameUISkinner
     [MenuItem("Tools/OutGame/Build Bottom Bar + Shop")]
     public static void BuildBottomBarAndShop()
     {
-        var panel  = Load("Panel_Common");
-        var coin   = Load("Icon_Coin");
-        var tab    = Load("Button_Tab");
-        var main   = Load("Button_Main");
+        var panel = Load("Panel_Common");
+        var coin = Load("Icon_Coin");
+        var tab = Load("Button_Tab");
+        var main = Load("Button_Main");
         var cellBg = Load("Cell_Item");
-        var pill   = LoadAt("Assets/Art/Space/ui/bar_round_small.png");
+        var pill = LoadAt("Assets/Art/Space/ui/bar_round_small.png");
         var crate1 = Load("Crate_Common");
         var crate2 = Load("Crate_Gold");
 
@@ -270,7 +270,7 @@ public static class OutGameUISkinner
     [MenuItem("Tools/OutGame/Iconize InGame Settings Button")]
     public static void IconizeInGameSettingsButton()
     {
-        var scene = EditorSceneManager.OpenScene("Assets/Scenes/SampleScene.unity");
+        var scene = EditorSceneManager.OpenScene("Assets/Scenes/InGameScene.unity");
         Transform btn = null;
         foreach (var tr in Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             if (tr.name == "SettingsButton") btn = tr;
