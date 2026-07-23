@@ -134,8 +134,8 @@ public class SkillManager : InGameManager
         {
             baseDamage = ball.BaseDamage,
             isNormalBall = ball.ActiveSkill == null,
-            tinHeartBonus = PassiveValue(SkillId.TinHeart),
-            mirrorPerBounce = PassiveValue(SkillId.MagicMirror),
+            tinHeartBonus = playerSkills.PassiveValue(SkillId.TinHeart),
+            mirrorPerBounce = playerSkills.PassiveValue(SkillId.MagicMirror),
             wallBounces = ball.WallBounceCount,
             targetFrozen = status != null && status.IsFrozen,
             frozenBonus = status != null ? status.FrozenDamageBonus : 0f,
@@ -170,18 +170,11 @@ public class SkillManager : InGameManager
         fragmentPool.Release(fragment.gameObject);
     }
 
-    // 보유 패시브의 현재 레벨 a값 (미보유 = 0)
-    private float PassiveValue(SkillId id)
-    {
-        int level = playerSkills.GetLevel(id);
-        return level == 0 ? 0f : playerSkills.Table[id].GetLevel(level).a;
-    }
-
     // 판정 규칙은 DaggerCritRule(순수 코어) 소유 — 여기는 보유 패시브 값만 이어준다
     private float CritChanceFor(Monster monster, Vector2 hitNormal)
     {
         return daggerRule.CritChance(monster.GetInstanceID(), hitNormal.y,
-            PassiveValue(SkillId.AmethystDagger), PassiveValue(SkillId.EmeraldDagger));
+            playerSkills.PassiveValue(SkillId.AmethystDagger), playerSkills.PassiveValue(SkillId.EmeraldDagger));
     }
 
     // ── 레벨업 → 3택지 ────────────────────────────────────────────
